@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterfirebase/screens/home_screen.dart';
-import 'package:flutterfirebase/screens/login_screen.dart';
+import 'package:flutterfirebase/authentication/login_screen.dart';
 
 class VerificationScreen extends StatefulWidget {
   const VerificationScreen({Key? key}) : super(key: key);

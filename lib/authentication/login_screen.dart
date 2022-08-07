@@ -3,27 +3,25 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutterfirebase/components/loading_dialog.dart';
 import 'package:flutterfirebase/screens/home_screen.dart';
-import 'package:flutterfirebase/screens/verification_screen.dart';
-import 'package:flutterfirebase/screens/login_screen.dart';
+import 'package:flutterfirebase/authentication/register_screen.dart';
+import 'package:flutterfirebase/authentication/set_password_for_google_screen.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-import 'set_password_for_google_screen.dart';
+import '../components/loading_dialog.dart';
+import 'verification_screen.dart';
 
-class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({Key? key}) : super(key: key);
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({Key? key}) : super(key: key);
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _LoginScreenState extends State<LoginScreen> {
   GlobalKey<FormState> formState = GlobalKey<FormState>();
 
-  late String name, email, password;
-
-
+  late String email, password;
 
   @override
   Widget build(BuildContext context) {
@@ -39,33 +37,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text(
-                      'Register',
+                      'LOGIN',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 40,
                         color: Colors.blue,
-                      ),
-                    ),
-                    const SizedBox(height: 25),
-                    TextFormField(
-                      onSaved: (val) {
-                        name = val!;
-                      },
-                      validator: (val) {
-                        if (val!.length > 100) {
-                          return "Name can't be more than 100 letter";
-                        } else if (val.length < 3) {
-                          return "Username can't be less than 3 letter";
-                        }
-                        return null;
-                      },
-                      decoration: InputDecoration(
-                        hintText: "Enter Your NAme",
-                        labelText: 'Name',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Colors.grey),
-                        ),
                       ),
                     ),
                     const SizedBox(height: 15),
@@ -96,8 +72,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       validator: (val) {
                         if (val!.length > 100) {
                           return "Password can't be more than 100 letter";
-                        } else if (val.length < 8) {
-                          return "Password can't be less than 8 letter";
+                        } else if (val.isEmpty) {
+                          return "Please Enter your Password";
                         }
                         return null;
                       },
@@ -114,26 +90,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Row(
                       children: [
                         const Text(
-                          'Already Have Account?',
+                          "Don't Have Account?",
                         ),
                         TextButton(
                           onPressed: () {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const LoginScreen(),
+                                builder: (context) => const RegisterScreen(),
                               ),
                             );
                           },
-                          child: const Text("LOGIN"),
+                          child: const Text("REGISTER"),
                         ),
                       ],
                     ),
                     ElevatedButton(
                       onPressed: () async {
-                        await signUpWithEmailAndPassword();
+                        await signInWithEmailAndPassword();
                       },
-                      child: const Text("Register"),
+                      child: const Text("LOGIN"),
                     ),
                     const Text("OR LOGIN WITH"),
                     ElevatedButton(
@@ -152,86 +128,99 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  signUpWithEmailAndPassword() async {
+  signInWithEmailAndPassword() {
     var formData = formState.currentState;
     if (formData!.validate()) {
       formData.save();
+      showLoading(context);
       try {
-        showLoading(context);
-        await FirebaseAuth.instance
-            .createUserWithEmailAndPassword(
+        FirebaseAuth.instance
+            .signInWithEmailAndPassword(
           email: email,
           password: password,
         )
             .then((userValue) {
-          userValue.user!.updateDisplayName(name);
-
-          FirebaseFirestore.instance.collection("users").add({
-            "withPassword":true,
-            "uId":userValue.user!.uid,
-          }).then((value){
+          if (userValue.user!.emailVerified) {
+            Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const HomeScreen(),
+                ),
+                (route) => false);
+          } else {
             Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const VerificationScreen(),
                 ),
-                    (route) => false);
-          });
+                (route) => false);
+          }
+        }).catchError((e) {
+          if (e.code == 'user-not-found') {
+            Navigator.pop(context);
+            AwesomeDialog(
+              context: context,
+              title: "Error",
+              body: const Text("No user found for that email.",
+                  style: TextStyle(fontSize: 24)),
+              dismissOnBackKeyPress: false,
+              dismissOnTouchOutside: false,
+              btnCancel: TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text("Close"),
+              ),
+            ).show();
+          } else if (e.code == 'wrong-password') {
+            Navigator.pop(context);
+            AwesomeDialog(
+              context: context,
+              title: "Error",
+              body:
+                  const Text("Wrong password", style: TextStyle(fontSize: 24)),
+              dismissOnBackKeyPress: false,
+              dismissOnTouchOutside: false,
+              btnCancel: TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text("Close"),
+              ),
+            ).show();
+          } else {
+            Navigator.pop(context);
+            AwesomeDialog(
+              context: context,
+              title: "Error",
+              body: const Text("Connection Error",
+                  style: TextStyle(fontSize: 24)),
+              dismissOnBackKeyPress: false,
+              dismissOnTouchOutside: false,
+              btnCancel: TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text("Close"),
+              ),
+            ).show();
+          }
         });
       } catch (e) {
-        Navigator.pop(context);
-        if (e.toString().contains("weak-password")) {
-          AwesomeDialog(
-            context: context,
-            title: "Error",
-            body: const Text(
-              "The Password is too weak.",
-              style: TextStyle(fontSize: 24),
-              textAlign: TextAlign.center,
-            ),
-            dismissOnBackKeyPress: false,
-            dismissOnTouchOutside: false,
-            btnCancel: TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text("Close"),
-            ),
-          ).show();
-        }
-        else if (e.toString().contains("email-already-in-use")) {
-          AwesomeDialog(
-            context: context,
-            title: "Error",
-            body: const Text(
-              "The account already exists for that email.",
-              style: TextStyle(fontSize: 24),
-              textAlign: TextAlign.center,
-            ),
-            dismissOnBackKeyPress: false,
-            dismissOnTouchOutside: false,
-            btnCancel: TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text("Close"),
-            ),
-          ).show();
-        } else {
-          AwesomeDialog(
-            context: context,
-            title: "Error",
-            body: Text(e.toString(), style: const TextStyle(fontSize: 24)),
-            dismissOnBackKeyPress: false,
-            dismissOnTouchOutside: false,
-            btnCancel: TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text("Close"),
-            ),
-          ).show();
-        }
+        //Navigator.pop(context);
+        AwesomeDialog(
+          context: context,
+          title: "Error",
+          body: Text(e.toString(), style: const TextStyle(fontSize: 24)),
+          dismissOnBackKeyPress: false,
+          dismissOnTouchOutside: false,
+          btnCancel: TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text("Close"),
+          ),
+        ).show();
       }
     }
   }
@@ -242,7 +231,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     // Obtain the auth details from the request
     final GoogleSignInAuthentication? googleAuth =
-    await googleUser?.authentication;
+        await googleUser?.authentication;
 
     // Create a new credential
     final credential = GoogleAuthProvider.credential(
@@ -269,12 +258,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
         }else{
           value.docs.forEach((element) {
             if (element.data()["withPassword"]){
-              Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const HomeScreen(),
-                  ),
-                      (route) => false);
+                  Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HomeScreen(),
+                      ),
+                          (route) => false);
             }else{
               Navigator.pushAndRemoveUntil(
                   context,

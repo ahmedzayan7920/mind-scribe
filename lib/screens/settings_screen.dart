@@ -7,15 +7,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutterfirebase/screens/change_name_screen.dart';
+import 'package:flutterfirebase/settings/change_name_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
 
 import '../components/loading_dialog.dart';
-import 'change_email_screen.dart';
-import 'change_password_screen.dart';
-import 'login_screen.dart';
-import 'verification_screen.dart';
+import '../settings/change_email_screen.dart';
+import '../settings/change_password_screen.dart';
+import '../authentication/login_screen.dart';
+import '../authentication/verification_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);

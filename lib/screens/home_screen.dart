@@ -9,7 +9,7 @@ import 'package:flutterfirebase/notes/edit_note.dart';
 import 'package:flutterfirebase/notes/note_details_screen.dart';
 import 'package:flutterfirebase/screens/settings_screen.dart';
 
-import 'login_screen.dart';
+import '../authentication/login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
