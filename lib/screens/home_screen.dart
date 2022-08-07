@@ -121,21 +121,35 @@ class _HomeScreenState extends State<HomeScreen> {
                                             onPressed: () {
                                               Navigator.pop(childContext);
                                               showLoading(context);
-                                              FirebaseStorage.instance
-                                                  .refFromURL((snapshot
-                                                          .data!.docs[index]
-                                                          .data()
-                                                      as Map<String,
-                                                          dynamic>)["imageUrl"])
-                                                  .delete()
-                                                  .then((value) {
+                                              if ((snapshot
+                                                  .data!.docs[index]
+                                                  .data()
+                                              as Map<String,
+                                                  dynamic>)["imageUrl"] != ""){
+                                                FirebaseStorage.instance
+                                                    .refFromURL((snapshot
+                                                    .data!.docs[index]
+                                                    .data()
+                                                as Map<String,
+                                                    dynamic>)["imageUrl"])
+                                                    .delete()
+                                                    .then((value) {
+                                                  notesRef
+                                                      .doc(snapshot
+                                                      .data!.docs[index].id)
+                                                      .delete().then((value){
+                                                    Navigator.pop(context);
+                                                  });
+                                                });
+                                              }else{
                                                 notesRef
                                                     .doc(snapshot
-                                                        .data!.docs[index].id)
+                                                    .data!.docs[index].id)
                                                     .delete().then((value){
-                                                      Navigator.pop(context);
+                                                  Navigator.pop(context);
                                                 });
-                                              });
+                                              }
+
                                             },
                                             child: const Text("Yes"),
                                           ),
