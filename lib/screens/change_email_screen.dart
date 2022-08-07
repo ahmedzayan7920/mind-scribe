@@ -83,7 +83,7 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
                 onPressed: () {
                   _changeEmail();
                 },
-                child: const Text("Change Name"),
+                child: const Text("Change Email"),
               ),
             ],
           ),

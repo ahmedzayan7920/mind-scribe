@@ -102,7 +102,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 onPressed: () {
                   _changePassword();
                 },
-                child: const Text("Change Name"),
+                child: const Text("Change Password"),
               ),
             ],
           ),
