@@ -1,4 +1,3 @@
-import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -9,6 +8,7 @@ import 'package:flutterfirebase/authentication/verification_screen.dart';
 import 'package:flutterfirebase/authentication/login_screen.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import '../components/awesome_dialog.dart';
 import 'set_password_for_google_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -157,7 +157,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (formData!.validate()) {
       formData.save();
       try {
-        showLoading(context);
+        showLoadingDialog(context);
         await FirebaseAuth.instance
             .createUserWithEmailAndPassword(
           email: email,
@@ -176,121 +176,89 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   builder: (context) => const VerificationScreen(),
                 ),
                     (route) => false);
+          }).catchError((e){
+            Navigator.pop(context);
+            showAwesomeDialog(context, e.toString());
           });
+        }).catchError((e){
+          Navigator.pop(context);
+          if (e.toString().contains("weak-password")) {
+            showAwesomeDialog(context, "The Password is too weak");
+          }
+          else if (e.toString().contains("email-already-in-use")) {
+            showAwesomeDialog(context, "The account already exists for that email");
+          } else {
+            showAwesomeDialog(context, e.toString());
+          }
         });
       } catch (e) {
         Navigator.pop(context);
         if (e.toString().contains("weak-password")) {
-          AwesomeDialog(
-            context: context,
-            title: "Error",
-            body: const Text(
-              "The Password is too weak.",
-              style: TextStyle(fontSize: 24),
-              textAlign: TextAlign.center,
-            ),
-            dismissOnBackKeyPress: false,
-            dismissOnTouchOutside: false,
-            btnCancel: TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text("Close"),
-            ),
-          ).show();
+          showAwesomeDialog(context, "The Password is too weak");
         }
         else if (e.toString().contains("email-already-in-use")) {
-          AwesomeDialog(
-            context: context,
-            title: "Error",
-            body: const Text(
-              "The account already exists for that email.",
-              style: TextStyle(fontSize: 24),
-              textAlign: TextAlign.center,
-            ),
-            dismissOnBackKeyPress: false,
-            dismissOnTouchOutside: false,
-            btnCancel: TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text("Close"),
-            ),
-          ).show();
+          showAwesomeDialog(context, "The account already exists for that email");
         } else {
-          AwesomeDialog(
-            context: context,
-            title: "Error",
-            body: Text(e.toString(), style: const TextStyle(fontSize: 24)),
-            dismissOnBackKeyPress: false,
-            dismissOnTouchOutside: false,
-            btnCancel: TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text("Close"),
-            ),
-          ).show();
+          showAwesomeDialog(context, e.toString());
         }
       }
     }
   }
 
   signInWithGoogle() async {
-    // Trigger the authentication flow
-    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-
-    // Obtain the auth details from the request
-    final GoogleSignInAuthentication? googleAuth =
-    await googleUser?.authentication;
-
-    // Create a new credential
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth?.accessToken,
-      idToken: googleAuth?.idToken,
-    );
-
-    // Once signed in, return the UserCredential
-    FirebaseAuth.instance.signInWithCredential(credential).then((user) {
-
-      FirebaseFirestore.instance.collection("users").where("uId", isEqualTo: user.user!.uid).get().then((value){
-        if (value.docs.isEmpty){
-          FirebaseFirestore.instance.collection("users").add({
-            "withPassword":false,
-            "uId":user.user!.uid,
-          }).then((value){
-            Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SetPasswordForGoogleScreen(),
-                ),
-                    (route) => false);
-          });
-        }else{
-          value.docs.forEach((element) {
-            if (element.data()["withPassword"]){
-              Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const HomeScreen(),
-                  ),
-                      (route) => false);
+    await GoogleSignIn().signIn().then((googleUser) async {
+      await googleUser!.authentication.then((googleAuth){
+        final credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+        FirebaseAuth.instance.signInWithCredential(credential).then((user) {
+          FirebaseFirestore.instance.collection("users").where("uId", isEqualTo: user.user!.uid).get().then((value){
+            if (value.docs.isEmpty){
+              FirebaseFirestore.instance.collection("users").add({
+                "withPassword":false,
+                "uId":user.user!.uid,
+              }).then((value){
+                Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SetPasswordForGoogleScreen(),
+                    ),
+                        (route) => false);
+              }).catchError((e){
+                showAwesomeDialog(context, e.toString());
+              });
             }else{
-              Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const SetPasswordForGoogleScreen(),
-                  ),
-                      (route) => false);
+              for (var element in value.docs) {
+                if (element.data()["withPassword"]){
+                  Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HomeScreen(),
+                      ),
+                          (route) => false);
+                }else{
+                  Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SetPasswordForGoogleScreen(),
+                      ),
+                          (route) => false);
+                }
+              }
             }
+          }).catchError((e){
+            showAwesomeDialog(context, e.toString());
           });
-        }
-      });
 
-    }).catchError((e) {
-      print("=======================================");
-      print(e.toString());
-      print("=======================================");
+        }).catchError((e) {
+          showAwesomeDialog(context, e.toString());
+        });
+      }).catchError((e){
+        showAwesomeDialog(context, e.toString());
+      });
+    }).catchError((e){
+      showAwesomeDialog(context, e.toString());
     });
   }
 }

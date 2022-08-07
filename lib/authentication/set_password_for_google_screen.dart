@@ -1,8 +1,8 @@
-import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../components/awesome_dialog.dart';
 import '../components/loading_dialog.dart';
 import '../screens/home_screen.dart';
 
@@ -10,16 +10,19 @@ class SetPasswordForGoogleScreen extends StatefulWidget {
   const SetPasswordForGoogleScreen({Key? key}) : super(key: key);
 
   @override
-  State<SetPasswordForGoogleScreen> createState() => _SetPasswordForGoogleScreenState();
+  State<SetPasswordForGoogleScreen> createState() =>
+      _SetPasswordForGoogleScreenState();
 }
 
-class _SetPasswordForGoogleScreenState extends State<SetPasswordForGoogleScreen> {
+class _SetPasswordForGoogleScreenState
+    extends State<SetPasswordForGoogleScreen> {
   GlobalKey<FormState> formState = GlobalKey<FormState>();
 
   var user = FirebaseAuth.instance.currentUser;
 
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmationPasswordController = TextEditingController();
+  final TextEditingController confirmationPasswordController =
+      TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +39,6 @@ class _SetPasswordForGoogleScreenState extends State<SetPasswordForGoogleScreen>
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 20),
-
               TextFormField(
                 controller: passwordController,
                 validator: (val) {
@@ -60,9 +62,9 @@ class _SetPasswordForGoogleScreenState extends State<SetPasswordForGoogleScreen>
               TextFormField(
                 controller: confirmationPasswordController,
                 validator: (val) {
-                  if(val!.isEmpty){
+                  if (val!.isEmpty) {
                     return "Please Enter The Confirmation Password";
-                  }else if (val != passwordController.text){
+                  } else if (val != passwordController.text) {
                     return "Confirmation Password Not Match";
                   }
                   return null;
@@ -92,7 +94,7 @@ class _SetPasswordForGoogleScreenState extends State<SetPasswordForGoogleScreen>
                       MaterialPageRoute(
                         builder: (context) => const HomeScreen(),
                       ),
-                          (route) => false);
+                      (route) => false);
                 },
                 child: const Text("Not Now"),
               ),
@@ -103,81 +105,43 @@ class _SetPasswordForGoogleScreenState extends State<SetPasswordForGoogleScreen>
     );
   }
 
-  _setPassword(){
-
+  _setPassword() {
     if (formState.currentState!.validate()) {
-      showLoading(context);
-      FirebaseAuth.instance.currentUser!.updatePassword(passwordController.text).then((value){
-
-        FirebaseFirestore.instance.collection("users").where("uId", isEqualTo: FirebaseAuth.instance.currentUser!.uid).get().then((value){
-            value.docs.forEach((element) {
-              FirebaseFirestore.instance.collection("users").doc(element.id).update({
-                "withPassword":true,
-              }).then((value){
-                Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const HomeScreen(),
-                    ),
-                        (route) => false);
-              });
+      showLoadingDialog(context);
+      FirebaseAuth.instance.currentUser!
+          .updatePassword(passwordController.text)
+          .then((value) {
+        FirebaseFirestore.instance
+            .collection("users")
+            .where("uId", isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+            .get()
+            .then((value) {
+          for (var element in value.docs) {
+            FirebaseFirestore.instance
+                .collection("users")
+                .doc(element.id)
+                .update({
+              "withPassword": true,
+            }).then((value) {
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const HomeScreen(),
+                  ),
+                  (route) => false);
+            }).catchError((e) {
+              Navigator.pop(context);
+              showAwesomeDialog(context, e.toString());
             });
-
+          }
+        }).catchError((e) {
+          Navigator.pop(context);
+          showAwesomeDialog(context, e.toString());
         });
-      }).catchError((e){
+      }).catchError((e) {
         Navigator.pop(context);
-        if (e.toString().contains("email-already-in-use")){
-          AwesomeDialog(
-            context: context,
-            title: "Error",
-            body:  const Text("Email Already in use",
-                style: TextStyle(fontSize: 24)),
-            dismissOnBackKeyPress: false,
-            dismissOnTouchOutside: false,
-            btnCancel: TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text("Close"),
-            ),
-          ).show();
-        }else if (e.toString().contains("wrong-password")){
-          AwesomeDialog(
-            context: context,
-            title: "Error",
-            body:  const Text("Wrong Password",
-                style: TextStyle(fontSize: 24)),
-            dismissOnBackKeyPress: false,
-            dismissOnTouchOutside: false,
-            btnCancel: TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text("Close"),
-            ),
-          ).show();
-        }
-
-        else{
-          AwesomeDialog(
-            context: context,
-            title: "Error",
-            body:  Text(e.toString(),
-                style: const TextStyle(fontSize: 24)),
-            dismissOnBackKeyPress: false,
-            dismissOnTouchOutside: false,
-            btnCancel: TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text("Close"),
-            ),
-          ).show();
-        }
-
+        showAwesomeDialog(context, e.toString());
       });
     }
-
-
   }
 }

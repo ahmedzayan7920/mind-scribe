@@ -1,12 +1,13 @@
 import 'dart:io';
 import 'dart:math';
-import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+// ignore: depend_on_referenced_packages
 import 'package:path/path.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
+import '../components/awesome_dialog.dart';
 import '../components/loading_dialog.dart';
 
 class EditNotes extends StatefulWidget {
@@ -29,16 +30,6 @@ class _EditNotesState extends State<EditNotes> {
   var notesRef = FirebaseFirestore.instance.collection("notes");
 
   GlobalKey<FormState> formState = GlobalKey<FormState>();
-
-  @override
-  void initState() {
-    super.initState();
-    setState(() {
-      title = widget.noteData["title"];
-      note = widget.noteData["note"];
-      withImage = widget.noteData["imageUrl"] == "" ? false : true;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -136,7 +127,8 @@ class _EditNotesState extends State<EditNotes> {
               ),
               ElevatedButton(
                 onPressed: () async {
-                  bool oldImage = widget.noteData["imageUrl"] == "" ? false : true;
+                  bool oldImage =
+                      widget.noteData["imageUrl"] == "" ? false : true;
                   await editNotes(context, oldImage);
                 },
                 child: Text(
@@ -151,25 +143,29 @@ class _EditNotesState extends State<EditNotes> {
     );
   }
 
+  @override
+  void initState() {
+    super.initState();
+    setState(() {
+      title = widget.noteData["title"];
+      note = widget.noteData["note"];
+      withImage = widget.noteData["imageUrl"] == "" ? false : true;
+    });
+  }
+
   editNotes(context, oldImage) async {
     var formData = formState.currentState;
     if (formData!.validate()) {
       formData.save();
-      showLoading(context);
+      showLoadingDialog(context);
       if (withImage) {
         if (file == null) {
           Navigator.pop(context);
-          return AwesomeDialog(
-              context: context,
-              title: "هام",
-              body: const Text("please choose Image"),
-              dialogType: DialogType.ERROR)
-            ..show();
-
+          return showAwesomeDialog(context, "please choose Image");
         } else {
           await ref.putFile(file!).then((p0) {
             ref.getDownloadURL().then((value) {
-              if (oldImage){
+              if (oldImage) {
                 FirebaseStorage.instance
                     .refFromURL(widget.noteData["imageUrl"])
                     .delete()
@@ -182,15 +178,14 @@ class _EditNotesState extends State<EditNotes> {
                     Navigator.pop(context);
                     Navigator.pop(context);
                   }).catchError((e) {
-                    AwesomeDialog(
-                        context: context,
-                        title: "هام",
-                        body: Text(e.toString()),
-                        dialogType: DialogType.ERROR)
-                        .show();
+                    Navigator.pop(context);
+                    showAwesomeDialog(context, e.toString());
                   });
+                }).catchError((e) {
+                  Navigator.pop(context);
+                  showAwesomeDialog(context, e.toString());
                 });
-              }else{
+              } else {
                 notesRef.doc(widget.docId).update({
                   "title": title,
                   "note": note,
@@ -199,21 +194,21 @@ class _EditNotesState extends State<EditNotes> {
                   Navigator.pop(context);
                   Navigator.pop(context);
                 }).catchError((e) {
-                  AwesomeDialog(
-                      context: context,
-                      title: "هام",
-                      body: Text(e.toString()),
-                      dialogType: DialogType.ERROR)
-                      .show();
+                  Navigator.pop(context);
+                  showAwesomeDialog(context, e.toString());
                 });
               }
-
+            }).catchError((e) {
+              Navigator.pop(context);
+              showAwesomeDialog(context, e.toString());
             });
+          }).catchError((e) {
+            Navigator.pop(context);
+            showAwesomeDialog(context, e.toString());
           });
         }
       } else {
-
-        if (oldImage){
+        if (oldImage) {
           FirebaseStorage.instance
               .refFromURL(widget.noteData["imageUrl"])
               .delete()
@@ -226,15 +221,14 @@ class _EditNotesState extends State<EditNotes> {
               Navigator.pop(context);
               Navigator.pop(context);
             }).catchError((e) {
-              AwesomeDialog(
-                  context: context,
-                  title: "هام",
-                  body: Text(e.toString()),
-                  dialogType: DialogType.ERROR)
-                  .show();
+              Navigator.pop(context);
+              showAwesomeDialog(context, e.toString());
             });
+          }).catchError((e) {
+            Navigator.pop(context);
+            showAwesomeDialog(context, e.toString());
           });
-        }else{
+        } else {
           notesRef.doc(widget.docId).update({
             "title": title,
             "note": note,
@@ -243,12 +237,8 @@ class _EditNotesState extends State<EditNotes> {
             Navigator.pop(context);
             Navigator.pop(context);
           }).catchError((e) {
-            AwesomeDialog(
-                context: context,
-                title: "هام",
-                body: Text(e.toString()),
-                dialogType: DialogType.ERROR)
-                .show();
+            Navigator.pop(context);
+            showAwesomeDialog(context, e.toString());
           });
         }
       }
@@ -272,70 +262,76 @@ class _EditNotesState extends State<EditNotes> {
                 InkWell(
                   onTap: () {
                     Navigator.pop(context);
-                    ImagePicker().pickImage(source: ImageSource.gallery).then(
-                      (value) {
-                        setState(() {
-                          file = File(value!.path);
-                        });
-                        var rand = Random().nextInt(100000);
-                        var imageName = "$rand${basename(value!.path)}";
-                        ref = FirebaseStorage.instance
-                            .ref("images")
-                            .child("notes")
-                            .child(imageName);
-                      },
-                    );
+                    ImagePicker()
+                        .pickImage(source: ImageSource.gallery)
+                        .then((value) {
+                      setState(() {
+                        file = File(value!.path);
+                      });
+                      var rand = Random().nextInt(100000);
+                      var imageName = "$rand${basename(value!.path)}";
+                      ref = FirebaseStorage.instance
+                          .ref("images")
+                          .child("notes")
+                          .child(imageName);
+                    }).catchError((e) {
+                      showAwesomeDialog(context, e.toString());
+                    });
                   },
                   child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(10),
-                      child: Row(
-                        children: const [
-                          Icon(
-                            Icons.photo_outlined,
-                            size: 30,
-                          ),
-                          SizedBox(width: 20),
-                          Text(
-                            "From Gallery",
-                            style: TextStyle(fontSize: 20),
-                          )
-                        ],
-                      )),
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(10),
+                    child: Row(
+                      children: const [
+                        Icon(
+                          Icons.photo_outlined,
+                          size: 30,
+                        ),
+                        SizedBox(width: 20),
+                        Text(
+                          "From Gallery",
+                          style: TextStyle(fontSize: 20),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
                 InkWell(
                   onTap: () {
                     Navigator.pop(context);
-                    ImagePicker().pickImage(source: ImageSource.camera).then(
-                      (value) {
-                        setState(() {
-                          file = File(value!.path);
-                        });
-                        var rand = Random().nextInt(100000);
-                        var imageName = "$rand${basename(value!.path)}";
-                        ref = FirebaseStorage.instance
-                            .ref("images")
-                            .child("notes")
-                            .child(imageName);
-                      },
-                    );
+                    ImagePicker()
+                        .pickImage(source: ImageSource.camera)
+                        .then((value) {
+                      setState(() {
+                        file = File(value!.path);
+                      });
+                      var rand = Random().nextInt(100000);
+                      var imageName = "$rand${basename(value!.path)}";
+                      ref = FirebaseStorage.instance
+                          .ref("images")
+                          .child("notes")
+                          .child(imageName);
+                    }).catchError((e) {
+                      showAwesomeDialog(context, e.toString());
+                    });
                   },
                   child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(10),
-                      child: Row(
-                        children: const [
-                          Icon(
-                            Icons.camera,
-                            size: 30,
-                          ),
-                          SizedBox(width: 20),
-                          Text(
-                            "From Camera",
-                            style: TextStyle(fontSize: 20),
-                          )
-                        ],
-                      )),
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(10),
+                    child: Row(
+                      children: const [
+                        Icon(
+                          Icons.camera,
+                          size: 30,
+                        ),
+                        SizedBox(width: 20),
+                        Text(
+                          "From Camera",
+                          style: TextStyle(fontSize: 20),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),

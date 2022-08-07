@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -9,8 +8,11 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterfirebase/settings/change_name_screen.dart';
 import 'package:image_picker/image_picker.dart';
+
+// ignore: depend_on_referenced_packages
 import 'package:path/path.dart';
 
+import '../components/awesome_dialog.dart';
 import '../components/loading_dialog.dart';
 import '../settings/change_email_screen.dart';
 import '../settings/change_password_screen.dart';
@@ -44,26 +46,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onTap: () {
                 showBottomSheet(context);
               },
-              child:
-              user.photoURL == null? const Icon(Icons.person, size: 100) :
-              CachedNetworkImage(
-                imageUrl: user.photoURL as String,
-                placeholder: (context, url) =>
-                    const CircularProgressIndicator(),
-                errorWidget: (context, url, error) =>
-                    const Icon(Icons.person, size: 100),
-                imageBuilder: (context, imageProvider) => Container(
-                  height: 100,
-                  width: 100,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(50),
-                    image: DecorationImage(
-                      image: imageProvider,
-                      fit: BoxFit.cover,
+              child: user.photoURL == null
+                  ? const Icon(Icons.person, size: 100)
+                  : CachedNetworkImage(
+                      height: 100,
+                      width: 100,
+                      imageUrl: user.photoURL as String,
+                      placeholder: (context, url) =>
+                          const CircularProgressIndicator(),
+                      errorWidget: (context, url, error) =>
+                          const Icon(Icons.person, size: 100),
+                      imageBuilder: (context, imageProvider) => Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(50),
+                          image: DecorationImage(
+                            image: imageProvider,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              ),
             ),
             const SizedBox(height: 12),
             ListTile(
@@ -91,13 +93,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         setState(() {
                           user = FirebaseAuth.instance.currentUser!;
                         });
+                      }).catchError((e) {
+                        showAwesomeDialog(context, e.toString());
                       });
                     } else {
                       showDialog(
                         context: context,
                         builder: (childContext) {
                           return AlertDialog(
-                            title: const Text("Your Account Doesn't Have Password."),
+                            title: const Text(
+                                "Your Account Doesn't Have Password."),
                             content: const Text(
                                 "Are you want to login again and set password?"),
                             actions: [
@@ -113,9 +118,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => const LoginScreen(),
+                                        builder: (context) =>
+                                            const LoginScreen(),
                                       ),
                                     );
+                                  }).catchError((e) {
+                                    Navigator.pop(childContext);
+                                    showAwesomeDialog(context, e.toString());
                                   });
                                 },
                                 child: const Text("Yes"),
@@ -126,6 +135,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       );
                     }
                   });
+                }).catchError((e) {
+                  showAwesomeDialog(context, e.toString());
                 });
               },
             ),
@@ -158,17 +169,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const VerificationScreen(),
+                                builder: (context) =>
+                                    const VerificationScreen(),
                               ),
-                                  (route) => false);
+                              (route) => false);
                         }
+                      }).catchError((e) {
+                        showAwesomeDialog(context, e.toString());
                       });
                     } else {
                       showDialog(
                         context: context,
                         builder: (childContext) {
                           return AlertDialog(
-                            title: const Text("Your Account Doesn't Have Password."),
+                            title: const Text(
+                                "Your Account Doesn't Have Password."),
                             content: const Text(
                                 "Are you want to login again and set password?"),
                             actions: [
@@ -184,9 +199,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => const LoginScreen(),
+                                        builder: (context) =>
+                                            const LoginScreen(),
                                       ),
                                     );
+                                  }).catchError((e) {
+                                    Navigator.pop(childContext);
+                                    showAwesomeDialog(context, e.toString());
                                   });
                                 },
                                 child: const Text("Yes"),
@@ -197,8 +216,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       );
                     }
                   });
+                }).catchError((e) {
+                  showAwesomeDialog(context, e.toString());
                 });
-
               },
             ),
             ListTile(
@@ -216,9 +236,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     .where("uId", isEqualTo: user.uid)
                     .get()
                     .then((value) {
-                  value.docs.forEach((element) async {
+                  value.docs.forEach((element) {
                     if (element.data()["withPassword"]) {
-                      await Navigator.push(
+                      Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => const ChangePasswordScreen(),
@@ -229,7 +249,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         context: context,
                         builder: (childContext) {
                           return AlertDialog(
-                            title: const Text("Your Account Doesn't Have Password."),
+                            title: const Text(
+                                "Your Account Doesn't Have Password."),
                             content: const Text(
                                 "Are you want to login again and set password?"),
                             actions: [
@@ -245,9 +266,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => const LoginScreen(),
+                                        builder: (context) =>
+                                            const LoginScreen(),
                                       ),
                                     );
+                                  }).catchError((e) {
+                                    Navigator.pop(childContext);
+                                    showAwesomeDialog(context, e.toString());
                                   });
                                 },
                                 child: const Text("Yes"),
@@ -258,6 +283,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       );
                     }
                   });
+                }).catchError((e) {
+                  showAwesomeDialog(context, e.toString());
                 });
               },
             ),
@@ -267,10 +294,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  showBottomSheet(context11) {
+  showBottomSheet(context) {
     return showModalBottomSheet(
-        context: context11,
-        builder: (context) {
+        context: context,
+        builder: (childContext) {
           return Container(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -283,75 +310,82 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 InkWell(
                   onTap: () {
-                    Navigator.pop(context);
-                    ImagePicker().pickImage(source: ImageSource.gallery).then(
-                      (value) {
-                        setState(() {
-                          file = File(value!.path);
-                        });
-                        var rand = Random().nextInt(100000);
-                        var imageName = "$rand${basename(value!.path)}";
-                        ref = FirebaseStorage.instance
-                            .ref("images")
-                            .child("users")
-                            .child(imageName);
-                      },
-                    ).then((value) {
-                      changeImage(context11);
+                    Navigator.pop(childContext);
+                    ImagePicker()
+                        .pickImage(source: ImageSource.gallery)
+                        .then((value) {
+                      setState(() {
+                        file = File(value!.path);
+                      });
+                      var rand = Random().nextInt(100000);
+                      var imageName = "$rand${basename(value!.path)}";
+                      ref = FirebaseStorage.instance
+                          .ref("images")
+                          .child("users")
+                          .child(imageName);
+                    }).then((value) {
+                      changeImage(context);
+                    }).catchError((e) {
+                      showAwesomeDialog(context, e.toString());
                     });
                   },
                   child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(10),
-                      child: Row(
-                        children: const [
-                          Icon(
-                            Icons.photo_outlined,
-                            size: 30,
-                          ),
-                          SizedBox(width: 20),
-                          Text(
-                            "From Gallery",
-                            style: TextStyle(fontSize: 20),
-                          )
-                        ],
-                      )),
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(10),
+                    child: Row(
+                      children: const [
+                        Icon(
+                          Icons.photo_outlined,
+                          size: 30,
+                        ),
+                        SizedBox(width: 20),
+                        Text(
+                          "From Gallery",
+                          style: TextStyle(fontSize: 20),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
                 InkWell(
                   onTap: () {
-                    Navigator.pop(context);
-                    ImagePicker().pickImage(source: ImageSource.camera).then(
-                      (value) {
-                        setState(() {
-                          file = File(value!.path);
-                        });
-                        var rand = Random().nextInt(100000);
-                        var imageName = "$rand${basename(value!.path)}";
-                        ref = FirebaseStorage.instance
-                            .ref("images")
-                            .child("users")
-                            .child(imageName);
-                      },
-                    ).then((value) {
-                      changeImage(context11);
+                    Navigator.pop(childContext);
+                    ImagePicker()
+                        .pickImage(source: ImageSource.camera)
+                        .then((value) {
+                      setState(() {
+                        file = File(value!.path);
+                      });
+                      var rand = Random().nextInt(100000);
+                      var imageName = "$rand${basename(value!.path)}";
+                      ref = FirebaseStorage.instance
+                          .ref("images")
+                          .child("users")
+                          .child(imageName);
+                    }).then((value) {
+                      changeImage(context);
+                    }).catchError((e) {
+                      Navigator.pop(context);
+                      showAwesomeDialog(context, e.toString());
                     });
                   },
                   child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(10),
-                      child: Row(
-                        children: const [
-                          Icon(
-                            Icons.camera,
-                            size: 30,
-                          ),
-                          SizedBox(width: 20),
-                          Text(
-                            "From Camera",
-                            style: TextStyle(fontSize: 20),
-                          )
-                        ],
-                      )),
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(10),
+                    child: Row(
+                      children: const [
+                        Icon(
+                          Icons.camera,
+                          size: 30,
+                        ),
+                        SizedBox(width: 20),
+                        Text(
+                          "From Camera",
+                          style: TextStyle(fontSize: 20),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -360,21 +394,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   changeImage(context) {
-    showLoading(context);
+    showLoadingDialog(context);
     if (file == null) {
-      return AwesomeDialog(
-          context: context,
-          title: "هام",
-          body: const Text("please choose Image"),
-          dialogType: DialogType.ERROR)
-        ..show();
+      return showAwesomeDialog(context, "please choose Image");
     } else {
       ref.putFile(file!).then((p0) {
         ref.getDownloadURL().then((value) {
-          if (FirebaseAuth.instance.currentUser!.photoURL != null){
-
-            String? oldUrl =
-            FirebaseAuth.instance.currentUser!.photoURL!.contains("firebase")
+          if (FirebaseAuth.instance.currentUser!.photoURL != null) {
+            String? oldUrl = FirebaseAuth.instance.currentUser!.photoURL!
+                    .contains("firebase")
                 ? FirebaseAuth.instance.currentUser!.photoURL
                 : null;
             if (oldUrl != null) {
@@ -389,21 +417,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Navigator.pop(context);
                 }).catchError((e) {
                   Navigator.pop(context);
-                  AwesomeDialog(
-                    context: context,
-                    title: "Error",
-                    body:
-                    Text(e.toString(), style: const TextStyle(fontSize: 24)),
-                    dismissOnBackKeyPress: false,
-                    dismissOnTouchOutside: false,
-                    btnCancel: TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: const Text("Close"),
-                    ),
-                  ).show();
+                  showAwesomeDialog(context, e.toString());
                 });
+              }).catchError((e) {
+                Navigator.pop(context);
+                showAwesomeDialog(context, e.toString());
               });
             } else {
               FirebaseAuth.instance.currentUser!
@@ -412,26 +430,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 setState(() {
                   user = FirebaseAuth.instance.currentUser!;
                 });
-
                 Navigator.pop(context);
               }).catchError((e) {
                 Navigator.pop(context);
-                AwesomeDialog(
-                  context: context,
-                  title: "Error",
-                  body: Text(e.toString(), style: const TextStyle(fontSize: 24)),
-                  dismissOnBackKeyPress: false,
-                  dismissOnTouchOutside: false,
-                  btnCancel: TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Text("Close"),
-                  ),
-                ).show();
+                showAwesomeDialog(context, e.toString());
               });
             }
-          }else{
+          } else {
             FirebaseAuth.instance.currentUser!
                 .updatePhotoURL(value)
                 .then((value) {
@@ -442,24 +447,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Navigator.pop(context);
             }).catchError((e) {
               Navigator.pop(context);
-              AwesomeDialog(
-                context: context,
-                title: "Error",
-                body:
-                Text(e.toString(), style: const TextStyle(fontSize: 24)),
-                dismissOnBackKeyPress: false,
-                dismissOnTouchOutside: false,
-                btnCancel: TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text("Close"),
-                ),
-              ).show();
+              showAwesomeDialog(context, e.toString());
             });
           }
-
+        }).catchError((e) {
+          Navigator.pop(context);
+          showAwesomeDialog(context, e.toString());
         });
+      }).catchError((e) {
+        Navigator.pop(context);
+        showAwesomeDialog(context, e.toString());
       });
     }
   }

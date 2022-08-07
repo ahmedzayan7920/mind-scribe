@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-showLoading(context) {
+showLoadingDialog(context) {
   return showDialog(
+    barrierDismissible: false,
     context: context,
     builder: (context) {
       return const AlertDialog(

@@ -1,13 +1,15 @@
 import 'dart:io';
 import 'dart:math';
-import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
+// ignore: depend_on_referenced_packages
 import 'package:path/path.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
+import '../components/awesome_dialog.dart';
 import '../components/loading_dialog.dart';
 
 class AddNotes extends StatefulWidget {
@@ -53,23 +55,24 @@ class _AddNotesState extends State<AddNotes> {
                   const Text("With Image"),
                 ],
               ),
-              withImage?
-              GestureDetector(
-                onTap: () {
-                  showBottomSheet(context);
-                },
-                child: file == null
-                    ? const Icon(
-                        Icons.image_outlined,
-                        size: 150,
-                      )
-                    : Image.file(
-                        file!,
-                        width: double.infinity,
-                        height: 150,
-                        fit: BoxFit.fitHeight,
-                      ),
-              ):const SizedBox.shrink(),
+              withImage
+                  ? GestureDetector(
+                      onTap: () {
+                        showBottomSheet(context);
+                      },
+                      child: file == null
+                          ? const Icon(
+                              Icons.image_outlined,
+                              size: 150,
+                            )
+                          : Image.file(
+                              file!,
+                              width: double.infinity,
+                              height: 150,
+                              fit: BoxFit.fitHeight,
+                            ),
+                    )
+                  : const SizedBox.shrink(),
               TextFormField(
                 validator: (val) {
                   if (val!.length > 30) {
@@ -127,19 +130,14 @@ class _AddNotesState extends State<AddNotes> {
   }
 
   addNotes(context) async {
-    if (withImage){
+    if (withImage) {
       if (file == null) {
-        return AwesomeDialog(
-            context: context,
-            title: "هام",
-            body: const Text("please choose Image"),
-            dialogType: DialogType.ERROR)
-          ..show();
+        return showAwesomeDialog(context, "please choose Image");
       } else {
         var formData = formState.currentState;
         if (formData!.validate()) {
           formData.save();
-          showLoading(context);
+          showLoadingDialog(context);
           await ref.putFile(file!).then((p0) {
             ref.getDownloadURL().then((value) {
               notesRef.add({
@@ -151,22 +149,24 @@ class _AddNotesState extends State<AddNotes> {
                 Navigator.pop(context);
                 Navigator.pop(context);
               }).catchError((e) {
-                AwesomeDialog(
-                    context: context,
-                    title: "هام",
-                    body: Text(e.toString()),
-                    dialogType: DialogType.ERROR)
-                    .show();
+                Navigator.pop(context);
+                showAwesomeDialog(context, e.toString());
               });
+            }).catchError((e) {
+              Navigator.pop(context);
+              showAwesomeDialog(context, e.toString());
             });
+          }).catchError((e) {
+            Navigator.pop(context);
+            showAwesomeDialog(context, e.toString());
           });
         }
       }
-    }else{
+    } else {
       var formData = formState.currentState;
       if (formData!.validate()) {
         formData.save();
-        showLoading(context);
+        showLoadingDialog(context);
         notesRef.add({
           "title": title,
           "note": note,
@@ -176,16 +176,11 @@ class _AddNotesState extends State<AddNotes> {
           Navigator.pop(context);
           Navigator.pop(context);
         }).catchError((e) {
-          AwesomeDialog(
-              context: context,
-              title: "هام",
-              body: Text(e.toString()),
-              dialogType: DialogType.ERROR)
-              .show();
+          Navigator.pop(context);
+          showAwesomeDialog(context, e.toString());
         });
       }
     }
-
   }
 
   showBottomSheet(context) {
@@ -205,70 +200,76 @@ class _AddNotesState extends State<AddNotes> {
                 InkWell(
                   onTap: () {
                     Navigator.pop(context);
-                    ImagePicker().pickImage(source: ImageSource.gallery).then(
-                      (value) {
-                        setState(() {
-                          file = File(value!.path);
-                        });
-                        var rand = Random().nextInt(100000);
-                        var imageName = "$rand${basename(value!.path)}";
-                        ref = FirebaseStorage.instance
-                            .ref("images")
-                            .child("notes")
-                            .child(imageName);
-                      },
-                    );
+                    ImagePicker()
+                        .pickImage(source: ImageSource.gallery)
+                        .then((value) {
+                      setState(() {
+                        file = File(value!.path);
+                      });
+                      var rand = Random().nextInt(100000);
+                      var imageName = "$rand${basename(value!.path)}";
+                      ref = FirebaseStorage.instance
+                          .ref("images")
+                          .child("notes")
+                          .child(imageName);
+                    }).catchError((e) {
+                      showAwesomeDialog(context, e.toString());
+                    });
                   },
                   child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(10),
-                      child: Row(
-                        children: const [
-                          Icon(
-                            Icons.photo_outlined,
-                            size: 30,
-                          ),
-                          SizedBox(width: 20),
-                          Text(
-                            "From Gallery",
-                            style: TextStyle(fontSize: 20),
-                          )
-                        ],
-                      )),
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(10),
+                    child: Row(
+                      children: const [
+                        Icon(
+                          Icons.photo_outlined,
+                          size: 30,
+                        ),
+                        SizedBox(width: 20),
+                        Text(
+                          "From Gallery",
+                          style: TextStyle(fontSize: 20),
+                        )
+                      ],
+                    ),
+                  ),
                 ),
                 InkWell(
                   onTap: () {
                     Navigator.pop(context);
-                    ImagePicker().pickImage(source: ImageSource.camera).then(
-                      (value) {
-                        setState(() {
-                          file = File(value!.path);
-                        });
-                        var rand = Random().nextInt(100000);
-                        var imageName = "$rand${basename(value!.path)}";
-                        ref = FirebaseStorage.instance
-                            .ref("images")
-                            .child("notes")
-                            .child(imageName);
-                      },
-                    );
+                    ImagePicker()
+                        .pickImage(source: ImageSource.camera)
+                        .then((value) {
+                      setState(() {
+                        file = File(value!.path);
+                      });
+                      var rand = Random().nextInt(100000);
+                      var imageName = "$rand${basename(value!.path)}";
+                      ref = FirebaseStorage.instance
+                          .ref("images")
+                          .child("notes")
+                          .child(imageName);
+                    }).catchError((e) {
+                      showAwesomeDialog(context, e.toString());
+                    });
                   },
                   child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(10),
-                      child: Row(
-                        children: const [
-                          Icon(
-                            Icons.camera,
-                            size: 30,
-                          ),
-                          SizedBox(width: 20),
-                          Text(
-                            "From Camera",
-                            style: TextStyle(fontSize: 20),
-                          )
-                        ],
-                      )),
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(10),
+                    child: Row(
+                      children: const [
+                        Icon(
+                          Icons.camera,
+                          size: 30,
+                        ),
+                        SizedBox(width: 20),
+                        Text(
+                          "From Camera",
+                          style: TextStyle(fontSize: 20),
+                        )
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),

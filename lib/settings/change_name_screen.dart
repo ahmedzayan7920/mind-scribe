@@ -1,7 +1,7 @@
-import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../components/awesome_dialog.dart';
 import '../components/loading_dialog.dart';
 
 class ChangeNameScreen extends StatefulWidget {
@@ -19,11 +19,7 @@ class _ChangeNameScreenState extends State<ChangeNameScreen> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
-    nameController.text = user!.displayName!;
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -93,49 +89,30 @@ class _ChangeNameScreenState extends State<ChangeNameScreen> {
     );
   }
 
+  @override
+  void initState() {
+    super.initState();
+    nameController.text = user!.displayName!;
+  }
+
   _changeName(){
     if (formState.currentState!.validate()) {
-      showLoading(context);
+      showLoadingDialog(context);
         var cred = EmailAuthProvider.credential(email: user!.email??"", password: passwordController.text);
         FirebaseAuth.instance.currentUser!.reauthenticateWithCredential(cred).then((value){
           FirebaseAuth.instance.currentUser!.updateDisplayName(nameController.text).then((value){
             Navigator.pop(context);
             Navigator.pop(context);
+          }).catchError((e){
+            showAwesomeDialog(context, e.toString());
           });
         }).catchError((e){
           Navigator.pop(context);
           if (e.toString().contains("wrong-password")){
-            AwesomeDialog(
-              context: context,
-              title: "Error",
-              body:  const Text("Wrong Password",
-                  style: TextStyle(fontSize: 24)),
-              dismissOnBackKeyPress: false,
-              dismissOnTouchOutside: false,
-              btnCancel: TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text("Close"),
-              ),
-            ).show();
+            showAwesomeDialog(context, "Wrong Password");
           }else{
-            AwesomeDialog(
-              context: context,
-              title: "Error",
-              body:  Text(e.toString(),
-                  style: const TextStyle(fontSize: 24)),
-              dismissOnBackKeyPress: false,
-              dismissOnTouchOutside: false,
-              btnCancel: TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text("Close"),
-              ),
-            ).show();
+            showAwesomeDialog(context, e.toString());
           }
-
         });
     }
   }

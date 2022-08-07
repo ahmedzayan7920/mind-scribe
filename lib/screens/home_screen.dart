@@ -10,6 +10,7 @@ import 'package:flutterfirebase/notes/note_details_screen.dart';
 import 'package:flutterfirebase/screens/settings_screen.dart';
 
 import '../authentication/login_screen.dart';
+import '../components/awesome_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -120,7 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           TextButton(
                                             onPressed: () {
                                               Navigator.pop(childContext);
-                                              showLoading(context);
+                                              showLoadingDialog(context);
                                               if ((snapshot
                                                   .data!.docs[index]
                                                   .data()
@@ -140,6 +141,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       .delete().then((value){
                                                     Navigator.pop(context);
                                                   });
+                                                }).catchError((e) {
+                                                  Navigator.pop(context);
+                                                  showAwesomeDialog(context, e.toString());
                                                 });
                                               }else{
                                                 notesRef
@@ -147,9 +151,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     .data!.docs[index].id)
                                                     .delete().then((value){
                                                   Navigator.pop(context);
+                                                }).catchError((e) {
+                                                  Navigator.pop(context);
+                                                  showAwesomeDialog(context, e.toString());
                                                 });
                                               }
-
                                             },
                                             child: const Text("Yes"),
                                           ),
@@ -173,7 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 itemCount: snapshot.data!.docs.length,
               );
             } else if (snapshot.hasError) {
-              return const Text("ERROR");
+              return showAwesomeDialog(context, "ERROR");
             } else {
               return const Center(child: CircularProgressIndicator());
             }
@@ -197,15 +203,14 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 70),
-
             user!.photoURL == null? const Icon(Icons.person, size: 100) :
             CachedNetworkImage(
+              height: 100,
+              width: 100,
               imageUrl: user!.photoURL as String,
               placeholder: (context, url) => const CircularProgressIndicator(),
               errorWidget: (context, url, error) => const Icon(Icons.person, size: 100),
               imageBuilder: (context, imageProvider) => Container(
-                height: 100,
-                width: 100,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(50),
                   image: DecorationImage(
@@ -242,6 +247,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             user = FirebaseAuth.instance.currentUser!;
                           });
                         });
+                      }).catchError((e) {
+                        showAwesomeDialog(context, e.toString());
                       });
                     },
                   ),
@@ -259,6 +266,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             builder: (context) => const LoginScreen(),
                           ),
                         );
+                      }).catchError((e) {
+                        Navigator.pop(context);
+                        showAwesomeDialog(context, e.toString());
                       });
                     },
                   ),
