@@ -47,18 +47,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 showBottomSheet(context);
               },
               child: user.photoURL == null
-                  ? const Icon(Icons.person, size: 100)
+                  ? const Icon(
+                      Icons.person,
+                      size: 100,
+                      color: Color.fromARGB(255, 0, 43, 91),
+                    )
                   : CachedNetworkImage(
-                      height: 100,
-                      width: 100,
+                      height: 120,
+                      width: 120,
                       imageUrl: user.photoURL as String,
                       placeholder: (context, url) =>
                           const CircularProgressIndicator(),
-                      errorWidget: (context, url, error) =>
-                          const Icon(Icons.person, size: 100),
+                      errorWidget: (context, url, error) => const Icon(
+                        Icons.person,
+                        size: 120,
+                        color: Color.fromARGB(255, 0, 43, 91),
+                      ),
                       imageBuilder: (context, imageProvider) => Container(
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(50),
+                          borderRadius: BorderRadius.circular(60),
                           image: DecorationImage(
                             image: imageProvider,
                             fit: BoxFit.cover,
@@ -69,12 +76,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 12),
             ListTile(
-              leading: const Icon(Icons.person, size: 30),
-              trailing: const Icon(Icons.edit, size: 30),
+              leading: const Icon(
+                Icons.person,
+                size: 30,
+                color: Color.fromARGB(255, 0, 43, 91),
+              ),
+              trailing: const Icon(
+                Icons.edit,
+                size: 30,
+                color: Color(0xff256d85),
+              ),
               title: const Text("Name", style: TextStyle(color: Colors.grey)),
               subtitle: Text(
                 "${user.displayName}",
-                style: const TextStyle(color: Colors.black, fontSize: 18),
+                style: const TextStyle(
+                    color: Color.fromARGB(255, 0, 43, 91), fontSize: 18),
               ),
               onTap: () async {
                 FirebaseFirestore.instance
@@ -141,12 +157,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.email, size: 30),
-              trailing: const Icon(Icons.edit, size: 30),
+              leading: const Icon(
+                Icons.email,
+                size: 30,
+                color: Color.fromARGB(255, 0, 43, 91),
+              ),
+              trailing: const Icon(
+                Icons.edit,
+                size: 30,
+                color: Color(0xff256d85),
+              ),
               title: const Text("Email", style: TextStyle(color: Colors.grey)),
               subtitle: Text(
                 "${user.email}",
-                style: const TextStyle(color: Colors.black, fontSize: 18),
+                style: const TextStyle(
+                  color: Color.fromARGB(255, 0, 43, 91),
+                  fontSize: 18,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
               onTap: () async {
                 FirebaseFirestore.instance
@@ -222,13 +250,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.password, size: 30),
-              trailing: const Icon(Icons.edit, size: 30),
+              leading: const Icon(
+                Icons.password,
+                size: 30,
+                color: Color.fromARGB(255, 0, 43, 91),
+              ),
+              trailing: const Icon(
+                Icons.edit,
+                size: 30,
+                color: Color(0xff256d85),
+              ),
               title:
                   const Text("Password", style: TextStyle(color: Colors.grey)),
               subtitle: const Text(
                 "********",
-                style: TextStyle(color: Colors.black, fontSize: 18),
+                style: TextStyle(color: Color.fromARGB(255, 0, 43, 91), fontSize: 18),
               ),
               onTap: () async {
                 FirebaseFirestore.instance

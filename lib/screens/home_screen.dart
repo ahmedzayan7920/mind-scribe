@@ -23,12 +23,12 @@ class _HomeScreenState extends State<HomeScreen> {
   var notesRef = FirebaseFirestore.instance.collection("notes");
   var user = FirebaseAuth.instance.currentUser;
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Home"),
+        centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(8),
@@ -60,14 +60,28 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Row(
                         children: [
                           (snapshot.data!.docs[index].data()
-                          as Map<String, dynamic>)["imageUrl"] != ""?
-                          Image.network(
-                            (snapshot.data!.docs[index].data()
-                                as Map<String, dynamic>)["imageUrl"],
-                            width: 80,
-                            height: 80,
-                            fit: BoxFit.fill,
-                          ):const Icon(Icons.note_outlined,size: 80),
+                                      as Map<String, dynamic>)["imageUrl"] !=
+                                  ""
+                              ? CachedNetworkImage(
+                                  height: 80,
+                                  width: 80,
+                                  fit: BoxFit.fill,
+                                  imageUrl: (snapshot.data!.docs[index].data()
+                                      as Map<String, dynamic>)["imageUrl"],
+                                  placeholder: (context, url) =>
+                                      const CircularProgressIndicator(),
+                                  errorWidget: (context, url, error) =>
+                                      const Icon(
+                                    Icons.note_alt_outlined,
+                                    size: 80,
+                                    color: Color.fromARGB(255, 37, 109, 133),
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.note_alt_outlined,
+                                  size: 80,
+                                  color: Color.fromARGB(255, 37, 109, 133),
+                                ),
                           Expanded(
                             child: ListTile(
                               title: Text(
@@ -100,7 +114,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   );
                                 },
-                                icon: const Icon(Icons.edit),
+                                icon: const Icon(
+                                  Icons.edit,
+                                  color: Color(0xff256d85),
+                                ),
                               ),
                               IconButton(
                                 onPressed: () {
@@ -122,38 +139,45 @@ class _HomeScreenState extends State<HomeScreen> {
                                             onPressed: () {
                                               Navigator.pop(childContext);
                                               showLoadingDialog(context);
-                                              if ((snapshot
-                                                  .data!.docs[index]
-                                                  .data()
-                                              as Map<String,
-                                                  dynamic>)["imageUrl"] != ""){
+                                              if ((snapshot.data!.docs[index]
+                                                              .data()
+                                                          as Map<String,
+                                                              dynamic>)[
+                                                      "imageUrl"] !=
+                                                  "") {
                                                 FirebaseStorage.instance
-                                                    .refFromURL((snapshot
-                                                    .data!.docs[index]
-                                                    .data()
-                                                as Map<String,
-                                                    dynamic>)["imageUrl"])
+                                                    .refFromURL(
+                                                        (snapshot.data!
+                                                                    .docs[index]
+                                                                    .data()
+                                                                as Map<String,
+                                                                    dynamic>)[
+                                                            "imageUrl"])
                                                     .delete()
                                                     .then((value) {
                                                   notesRef
                                                       .doc(snapshot
-                                                      .data!.docs[index].id)
-                                                      .delete().then((value){
+                                                          .data!.docs[index].id)
+                                                      .delete()
+                                                      .then((value) {
                                                     Navigator.pop(context);
                                                   });
                                                 }).catchError((e) {
                                                   Navigator.pop(context);
-                                                  showAwesomeDialog(context, e.toString());
+                                                  showAwesomeDialog(
+                                                      context, e.toString());
                                                 });
-                                              }else{
+                                              } else {
                                                 notesRef
                                                     .doc(snapshot
-                                                    .data!.docs[index].id)
-                                                    .delete().then((value){
+                                                        .data!.docs[index].id)
+                                                    .delete()
+                                                    .then((value) {
                                                   Navigator.pop(context);
                                                 }).catchError((e) {
                                                   Navigator.pop(context);
-                                                  showAwesomeDialog(context, e.toString());
+                                                  showAwesomeDialog(
+                                                      context, e.toString());
                                                 });
                                               }
                                             },
@@ -164,7 +188,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                     },
                                   );
                                 },
-                                icon: const Icon(Icons.delete),
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Colors.grey,
+                                ),
                               ),
                             ],
                           ),
@@ -203,37 +230,51 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 70),
-            user!.photoURL == null? const Icon(Icons.person, size: 100) :
-            CachedNetworkImage(
-              height: 100,
-              width: 100,
-              imageUrl: user!.photoURL as String,
-              placeholder: (context, url) => const CircularProgressIndicator(),
-              errorWidget: (context, url, error) => const Icon(Icons.person, size: 100),
-              imageBuilder: (context, imageProvider) => Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(50),
-                  image: DecorationImage(
-                    image: imageProvider,
-                    fit: BoxFit.cover,
+            user!.photoURL == null
+                ? const Icon(Icons.person, size: 100)
+                : CachedNetworkImage(
+                    height: 100,
+                    width: 100,
+                    imageUrl: user!.photoURL as String,
+                    placeholder: (context, url) =>
+                        const CircularProgressIndicator(),
+                    errorWidget: (context, url, error) =>
+                        const Icon(Icons.person, size: 100),
+                    imageBuilder: (context, imageProvider) => Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(50),
+                        image: DecorationImage(
+                          image: imageProvider,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Text(
               "${user!.displayName}",
-              style: const TextStyle(color: Colors.black, fontSize: 18),
+              style: const TextStyle(
+                color: Color.fromARGB(255, 0, 43, 91),
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             Expanded(
               child: Column(
                 children: [
                   const SizedBox(height: 20),
                   ListTile(
-                    leading: const Icon(Icons.settings, size: 30),
+                    leading: const Icon(
+                      Icons.settings,
+                      size: 30,
+                      color: Color.fromARGB(255, 0, 43, 91),
+                    ),
                     title: const Text(
                       "Settings",
-                      style: TextStyle(fontSize: 20),
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Colors.grey,
+                      ),
                     ),
                     onTap: () {
                       Navigator.push(
@@ -241,7 +282,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         MaterialPageRoute(
                           builder: (context) => const SettingsScreen(),
                         ),
-                      ).then((value){
+                      ).then((value) {
                         setState(() {
                           setState(() {
                             user = FirebaseAuth.instance.currentUser!;
@@ -253,10 +294,17 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                   ),
                   ListTile(
-                    leading: const Icon(Icons.logout, size: 30),
+                    leading: const Icon(
+                      Icons.logout,
+                      size: 30,
+                      color: Color.fromARGB(255, 0, 43, 91),
+                    ),
                     title: const Text(
-                      "LOGOUT",
-                      style: TextStyle(fontSize: 20),
+                      "Log out",
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Colors.grey,
+                      ),
                     ),
                     onTap: () {
                       FirebaseAuth.instance.signOut().then((value) {

@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'dart:math';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart';
 import 'package:flutter/material.dart';
@@ -36,6 +38,7 @@ class _EditNotesState extends State<EditNotes> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Note'),
+        centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(15),
@@ -46,16 +49,39 @@ class _EditNotesState extends State<EditNotes> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text("Without Image"),
+                  withImage
+                      ? const Text(
+                          "Without Image",
+                          style: TextStyle(color: Colors.grey),
+                        )
+                      : const Text(
+                          "Without Image",
+                          style: TextStyle(
+                            color: Color.fromARGB(255, 37, 109, 133),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                   Switch(
                     value: withImage,
+                    activeColor: const Color.fromARGB(255, 37, 109, 133),
                     onChanged: (newVal) {
                       setState(() {
                         withImage = newVal;
                       });
                     },
                   ),
-                  const Text("With Image"),
+                  withImage
+                      ? const Text(
+                          "With Image",
+                          style: TextStyle(
+                            color: Color.fromARGB(255, 37, 109, 133),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      : const Text(
+                          "With Image",
+                          style: TextStyle(color: Colors.grey),
+                        ),
                 ],
               ),
               withImage
@@ -64,21 +90,33 @@ class _EditNotesState extends State<EditNotes> {
                         showBottomSheet(context);
                       },
                       child: file != null
-                          ? Image.file(
-                              file!,
-                              width: double.infinity,
-                              height: 150,
-                              fit: BoxFit.fitHeight,
+                          ? CircleAvatar(
+                              backgroundImage: FileImage(file!),
+                              radius: 75,
                             )
                           : widget.noteData["imageUrl"] != ""
-                              ? Image.network(
-                                  widget.noteData["imageUrl"],
-                                  width: double.infinity,
+                              ? CachedNetworkImage(
                                   height: 150,
-                                  fit: BoxFit.fitHeight,
+                                  width: 150,
+                                  imageUrl: widget.noteData["imageUrl"],
+                                  placeholder: (context, url) =>
+                                      const CircularProgressIndicator(),
+                                  errorWidget: (context, url, error) =>
+                                      const Icon(Icons.person, size: 100),
+                                  imageBuilder: (context, imageProvider) =>
+                                      Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(75),
+                                      image: DecorationImage(
+                                        image: imageProvider,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  ),
                                 )
                               : const Icon(
-                                  Icons.image_outlined,
+                                  Icons.add_a_photo_outlined,
+                                  color: Color.fromARGB(255, 37, 109, 133),
                                   size: 150,
                                 ),
                     )
@@ -99,7 +137,10 @@ class _EditNotesState extends State<EditNotes> {
                 },
                 maxLength: 30,
                 decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.note),
+                  prefixIcon: Icon(
+                    Icons.title,
+                    color: Color.fromARGB(255, 37, 109, 133),
+                  ),
                   label: Text("Title Note"),
                 ),
               ),
@@ -122,7 +163,10 @@ class _EditNotesState extends State<EditNotes> {
                 maxLength: 200,
                 decoration: const InputDecoration(
                   labelText: "Note",
-                  prefixIcon: Icon(Icons.note),
+                  prefixIcon: Icon(
+                    Icons.note_alt_outlined,
+                    color: Color.fromARGB(255, 37, 109, 133),
+                  ),
                 ),
               ),
               ElevatedButton(
@@ -131,9 +175,8 @@ class _EditNotesState extends State<EditNotes> {
                       widget.noteData["imageUrl"] == "" ? false : true;
                   await editNotes(context, oldImage);
                 },
-                child: Text(
+                child: const Text(
                   "Edit Note",
-                  style: Theme.of(context).textTheme.headline6,
                 ),
               ),
             ],
@@ -257,7 +300,11 @@ class _EditNotesState extends State<EditNotes> {
               children: [
                 const Text(
                   "Please Choose Image",
-                  style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 0, 43, 91),
+                  ),
                 ),
                 InkWell(
                   onTap: () {
@@ -286,11 +333,16 @@ class _EditNotesState extends State<EditNotes> {
                         Icon(
                           Icons.photo_outlined,
                           size: 30,
+                          color: Color.fromARGB(255, 0, 43, 91),
                         ),
                         SizedBox(width: 20),
                         Text(
                           "From Gallery",
-                          style: TextStyle(fontSize: 20),
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
                         ),
                       ],
                     ),
@@ -323,11 +375,16 @@ class _EditNotesState extends State<EditNotes> {
                         Icon(
                           Icons.camera,
                           size: 30,
+                          color: Color.fromARGB(255, 0, 43, 91),
                         ),
                         SizedBox(width: 20),
                         Text(
                           "From Camera",
-                          style: TextStyle(fontSize: 20),
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
                         ),
                       ],
                     ),

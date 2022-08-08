@@ -33,6 +33,7 @@ class _AddNotesState extends State<AddNotes> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add Note'),
+        centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(15),
@@ -43,16 +44,39 @@ class _AddNotesState extends State<AddNotes> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text("Without Image"),
+                  withImage
+                      ? const Text(
+                          "Without Image",
+                          style: TextStyle(color: Colors.grey),
+                        )
+                      : const Text(
+                          "Without Image",
+                          style: TextStyle(
+                            color: Color.fromARGB(255, 37, 109, 133),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                   Switch(
                     value: withImage,
+                    activeColor: const Color.fromARGB(255, 37, 109, 133),
                     onChanged: (newVal) {
                       setState(() {
                         withImage = newVal;
                       });
                     },
                   ),
-                  const Text("With Image"),
+                  withImage
+                      ? const Text(
+                          "With Image",
+                          style: TextStyle(
+                            color: Color.fromARGB(255, 37, 109, 133),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      : const Text(
+                          "With Image",
+                          style: TextStyle(color: Colors.grey),
+                        ),
                 ],
               ),
               withImage
@@ -62,14 +86,13 @@ class _AddNotesState extends State<AddNotes> {
                       },
                       child: file == null
                           ? const Icon(
-                              Icons.image_outlined,
+                              Icons.add_a_photo_outlined,
+                              color: Color.fromARGB(255, 37, 109, 133),
                               size: 150,
                             )
-                          : Image.file(
-                              file!,
-                              width: double.infinity,
-                              height: 150,
-                              fit: BoxFit.fitHeight,
+                          : CircleAvatar(
+                              backgroundImage: FileImage(file!),
+                              radius: 75,
                             ),
                     )
                   : const SizedBox.shrink(),
@@ -89,7 +112,10 @@ class _AddNotesState extends State<AddNotes> {
                 maxLength: 30,
                 decoration: const InputDecoration(
                   labelText: "Title Note",
-                  prefixIcon: Icon(Icons.note),
+                  prefixIcon: Icon(
+                    Icons.title,
+                    color: Color.fromARGB(255, 37, 109, 133),
+                  ),
                 ),
               ),
               TextFormField(
@@ -110,16 +136,18 @@ class _AddNotesState extends State<AddNotes> {
                 maxLength: 200,
                 decoration: const InputDecoration(
                   labelText: "Note",
-                  prefixIcon: Icon(Icons.note),
+                  prefixIcon: Icon(
+                    Icons.note_alt_outlined,
+                    color: Color.fromARGB(255, 37, 109, 133),
+                  ),
                 ),
               ),
               ElevatedButton(
                 onPressed: () async {
                   await addNotes(context);
                 },
-                child: Text(
+                child: const Text(
                   "Add Note",
-                  style: Theme.of(context).textTheme.headline6,
                 ),
               ),
             ],
@@ -195,7 +223,11 @@ class _AddNotesState extends State<AddNotes> {
               children: [
                 const Text(
                   "Please Choose Image",
-                  style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 0, 43, 91),
+                  ),
                 ),
                 InkWell(
                   onTap: () {
@@ -224,12 +256,17 @@ class _AddNotesState extends State<AddNotes> {
                         Icon(
                           Icons.photo_outlined,
                           size: 30,
+                          color: Color.fromARGB(255, 0, 43, 91),
                         ),
                         SizedBox(width: 20),
                         Text(
                           "From Gallery",
-                          style: TextStyle(fontSize: 20),
-                        )
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -261,12 +298,17 @@ class _AddNotesState extends State<AddNotes> {
                         Icon(
                           Icons.camera,
                           size: 30,
+                          color: Color.fromARGB(255, 0, 43, 91),
                         ),
                         SizedBox(width: 20),
                         Text(
                           "From Camera",
-                          style: TextStyle(fontSize: 20),
-                        )
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
+                        ),
                       ],
                     ),
                   ),
