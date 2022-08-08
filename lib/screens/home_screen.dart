@@ -269,11 +269,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       size: 30,
                       color: Color.fromARGB(255, 0, 43, 91),
                     ),
-                    title: const Text(
+                    title:  Text(
                       "Settings",
                       style: TextStyle(
                         fontSize: 20,
-                        color: Colors.grey,
+                        color: Colors.grey[600],
                       ),
                     ),
                     onTap: () {
@@ -299,11 +299,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       size: 30,
                       color: Color.fromARGB(255, 0, 43, 91),
                     ),
-                    title: const Text(
+                    title:  Text(
                       "Log out",
                       style: TextStyle(
                         fontSize: 20,
-                        color: Colors.grey,
+                        color: Colors.grey[600],
                       ),
                     ),
                     onTap: () {

@@ -12,14 +12,13 @@ class ChangeNameScreen extends StatefulWidget {
 }
 
 class _ChangeNameScreenState extends State<ChangeNameScreen> {
-
   GlobalKey<FormState> formState = GlobalKey<FormState>();
 
   var user = FirebaseAuth.instance.currentUser;
   final TextEditingController nameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-
+  bool obscureText = true;
 
   @override
   Widget build(BuildContext context) {
@@ -40,13 +39,17 @@ class _ChangeNameScreenState extends State<ChangeNameScreen> {
                 validator: (val) {
                   if (val!.length > 30) {
                     return "Name can't be more than 30 letters";
-                  }else if (val.length < 3){
+                  } else if (val.length < 3) {
                     return "Name can't be less than 3 letters";
                   }
                   return null;
                 },
+                style: const TextStyle( color: Color.fromARGB(255, 0, 43, 91)),
                 decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.text_format),
+                  prefixIcon: const Icon(
+                    Icons.text_format,
+                    color: Color.fromARGB(255, 0, 43, 91),
+                  ),
                   hintText: "Enter Your Name",
                   labelText: 'Name',
                   border: OutlineInputBorder(
@@ -64,9 +67,25 @@ class _ChangeNameScreenState extends State<ChangeNameScreen> {
                   }
                   return null;
                 },
-                obscureText: true,
+                style: const TextStyle( color: Color.fromARGB(255, 0, 43, 91)),
+                obscureText: obscureText,
                 decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.password),
+                  prefixIcon: const Icon(
+                    Icons.password,
+                    color: Color.fromARGB(255, 0, 43, 91),
+                  ),
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        obscureText = !obscureText;
+                      });
+                    },
+                    icon:  Icon(
+                      obscureText?
+                      Icons.visibility:Icons.visibility_off,
+                      color: const Color.fromARGB(255, 37, 109, 133),
+                    ),
+                  ),
                   hintText: "Enter Your Password",
                   labelText: 'Password',
                   border: OutlineInputBorder(
@@ -95,25 +114,30 @@ class _ChangeNameScreenState extends State<ChangeNameScreen> {
     nameController.text = user!.displayName!;
   }
 
-  _changeName(){
+  _changeName() {
     if (formState.currentState!.validate()) {
       showLoadingDialog(context);
-        var cred = EmailAuthProvider.credential(email: user!.email??"", password: passwordController.text);
-        FirebaseAuth.instance.currentUser!.reauthenticateWithCredential(cred).then((value){
-          FirebaseAuth.instance.currentUser!.updateDisplayName(nameController.text).then((value){
-            Navigator.pop(context);
-            Navigator.pop(context);
-          }).catchError((e){
-            showAwesomeDialog(context, e.toString());
-          });
-        }).catchError((e){
+      var cred = EmailAuthProvider.credential(
+          email: user!.email ?? "", password: passwordController.text);
+      FirebaseAuth.instance.currentUser!
+          .reauthenticateWithCredential(cred)
+          .then((value) {
+        FirebaseAuth.instance.currentUser!
+            .updateDisplayName(nameController.text)
+            .then((value) {
           Navigator.pop(context);
-          if (e.toString().contains("wrong-password")){
-            showAwesomeDialog(context, "Wrong Password");
-          }else{
-            showAwesomeDialog(context, e.toString());
-          }
+          Navigator.pop(context);
+        }).catchError((e) {
+          showAwesomeDialog(context, e.toString());
         });
+      }).catchError((e) {
+        Navigator.pop(context);
+        if (e.toString().contains("wrong-password")) {
+          showAwesomeDialog(context, "Wrong Password");
+        } else {
+          showAwesomeDialog(context, e.toString());
+        }
+      });
     }
   }
 }

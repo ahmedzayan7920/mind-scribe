@@ -202,10 +202,22 @@ class _EditNotesState extends State<EditNotes> {
       formData.save();
       showLoadingDialog(context);
       if (withImage) {
-        if (file == null) {
+        if (file == null && widget.noteData["imageUrl"] == "") {
           Navigator.pop(context);
           return showAwesomeDialog(context, "please choose Image");
-        } else {
+        } else if (file == null && widget.noteData["imageUrl"] != ""){
+          notesRef.doc(widget.docId).update({
+            "title": title,
+            "note": note,
+          }).then((value) {
+            Navigator.pop(context);
+            Navigator.pop(context);
+          }).catchError((e) {
+            Navigator.pop(context);
+            showAwesomeDialog(context, e.toString());
+          });
+        }
+        else {
           await ref.putFile(file!).then((p0) {
             ref.getDownloadURL().then((value) {
               if (oldImage) {

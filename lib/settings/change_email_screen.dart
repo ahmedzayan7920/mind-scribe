@@ -20,6 +20,7 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
+  bool obscureText = true;
 
 
   @override
@@ -44,8 +45,9 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
                   }
                   return null;
                 },
+                style: const TextStyle( color: Color.fromARGB(255, 0, 43, 91)),
                 decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.text_format),
+                  prefixIcon: const Icon(Icons.text_format, color: Color.fromARGB(255, 0, 43, 91),),
                   hintText: "Enter Your Name",
                   labelText: 'Name',
                   border: OutlineInputBorder(
@@ -63,9 +65,22 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
                   }
                   return null;
                 },
-                obscureText: true,
+                style: const TextStyle( color: Color.fromARGB(255, 0, 43, 91)),
+                obscureText: obscureText,
                 decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.password),
+                  prefixIcon: const Icon(Icons.password, color: Color.fromARGB(255, 0, 43, 91),),
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        obscureText = !obscureText;
+                      });
+                    },
+                    icon:  Icon(
+                      obscureText?
+                      Icons.visibility:Icons.visibility_off,
+                      color: const Color.fromARGB(255, 37, 109, 133),
+                    ),
+                  ),
                   hintText: "Enter Your Password",
                   labelText: 'Password',
                   border: OutlineInputBorder(
