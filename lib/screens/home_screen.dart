@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -136,49 +138,64 @@ class _HomeScreenState extends State<HomeScreen> {
                                             child: const Text("No"),
                                           ),
                                           TextButton(
-                                            onPressed: () {
+                                            onPressed: () async {
                                               Navigator.pop(childContext);
                                               showLoadingDialog(context);
-                                              if ((snapshot.data!.docs[index]
-                                                              .data()
-                                                          as Map<String,
-                                                              dynamic>)[
-                                                      "imageUrl"] !=
-                                                  "") {
-                                                FirebaseStorage.instance
-                                                    .refFromURL(
-                                                        (snapshot.data!
+
+                                              try {
+                                                final result =
+                                                    await InternetAddress
+                                                        .lookup('example.com');
+                                                if (result.isNotEmpty &&
+                                                    result[0]
+                                                        .rawAddress
+                                                        .isNotEmpty) {
+                                                  if ((snapshot.data!.docs[index]
+                                                                  .data()
+                                                              as Map<String,
+                                                                  dynamic>)[
+                                                          "imageUrl"] !=
+                                                      "") {
+                                                    FirebaseStorage.instance
+                                                        .refFromURL((snapshot
+                                                                    .data!
                                                                     .docs[index]
                                                                     .data()
                                                                 as Map<String,
                                                                     dynamic>)[
                                                             "imageUrl"])
-                                                    .delete()
-                                                    .then((value) {
-                                                  notesRef
-                                                      .doc(snapshot
-                                                          .data!.docs[index].id)
-                                                      .delete()
-                                                      .then((value) {
-                                                    Navigator.pop(context);
-                                                  });
-                                                }).catchError((e) {
-                                                  Navigator.pop(context);
-                                                  showAwesomeDialog(
-                                                      context, e.toString());
-                                                });
-                                              } else {
-                                                notesRef
-                                                    .doc(snapshot
-                                                        .data!.docs[index].id)
-                                                    .delete()
-                                                    .then((value) {
-                                                  Navigator.pop(context);
-                                                }).catchError((e) {
-                                                  Navigator.pop(context);
-                                                  showAwesomeDialog(
-                                                      context, e.toString());
-                                                });
+                                                        .delete()
+                                                        .then((value) {
+                                                      notesRef
+                                                          .doc(snapshot.data!
+                                                              .docs[index].id)
+                                                          .delete()
+                                                          .then((value) {
+                                                        Navigator.pop(context);
+                                                      });
+                                                    }).catchError((e) {
+                                                      Navigator.pop(context);
+                                                      showAwesomeDialog(context,
+                                                          e.toString());
+                                                    });
+                                                  } else {
+                                                    notesRef
+                                                        .doc(snapshot.data!
+                                                            .docs[index].id)
+                                                        .delete()
+                                                        .then((value) {
+                                                      Navigator.pop(context);
+                                                    }).catchError((e) {
+                                                      Navigator.pop(context);
+                                                      showAwesomeDialog(context,
+                                                          e.toString());
+                                                    });
+                                                  }
+                                                }
+                                              } on SocketException {
+                                                Navigator.pop(context);
+                                                showAwesomeDialog(context,
+                                                    "No Internet Connection");
                                               }
                                             },
                                             child: const Text("Yes"),
@@ -269,7 +286,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       size: 30,
                       color: Color.fromARGB(255, 0, 43, 91),
                     ),
-                    title:  Text(
+                    title: Text(
                       "Settings",
                       style: TextStyle(
                         fontSize: 20,
@@ -299,7 +316,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       size: 30,
                       color: Color.fromARGB(255, 0, 43, 91),
                     ),
-                    title:  Text(
+                    title: Text(
                       "Log out",
                       style: TextStyle(
                         fontSize: 20,

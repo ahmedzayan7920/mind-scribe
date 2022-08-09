@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutterfirebase/authentication/reset_password.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 import '../components/awesome_dialog.dart';
@@ -140,7 +141,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Align(
                           alignment: Alignment.centerRight,
                           child: GestureDetector(
-                            onTap: () async{
+                            onTap: () async {
                               await signInWithEmailAndPassword();
                             },
                             child: Container(
@@ -199,7 +200,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         margin: EdgeInsets.only(
                             right: size.width * .04, top: size.height * .02),
                         child: TextButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ResetPassword(),
+                              ),
+                            );
+                          },
                           child: Text(
                             "Forgot Password?",
                             style: TextStyle(
@@ -231,7 +239,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  signInWithEmailAndPassword() async{
+  signInWithEmailAndPassword() async {
     var formData = formState.currentState;
     if (formData!.validate()) {
       formData.save();
@@ -251,14 +259,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   MaterialPageRoute(
                     builder: (context) => const HomeScreen(),
                   ),
-                      (route) => false);
+                  (route) => false);
             } else {
               Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(
                     builder: (context) => const VerificationScreen(),
                   ),
-                      (route) => false);
+                  (route) => false);
             }
           }).catchError((e) {
             Navigator.pop(context);
@@ -271,7 +279,7 @@ class _LoginScreenState extends State<LoginScreen> {
             }
           });
         }
-      } on SocketException{
+      } on SocketException {
         Navigator.pop(context);
         showAwesomeDialog(context, "No Internet Connection");
       }
@@ -279,70 +287,72 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   signInWithGoogle() async {
-
     try {
       final result = await InternetAddress.lookup('example.com');
       if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
         await GoogleSignIn().signIn().then((googleUser) async {
-          await googleUser!.authentication.then((googleAuth){
+          await googleUser!.authentication.then((googleAuth) {
             final credential = GoogleAuthProvider.credential(
               accessToken: googleAuth.accessToken,
               idToken: googleAuth.idToken,
             );
             FirebaseAuth.instance.signInWithCredential(credential).then((user) {
-              FirebaseFirestore.instance.collection("users").where("uId", isEqualTo: user.user!.uid).get().then((value){
-                if (value.docs.isEmpty){
+              FirebaseFirestore.instance
+                  .collection("users")
+                  .where("uId", isEqualTo: user.user!.uid)
+                  .get()
+                  .then((value) {
+                if (value.docs.isEmpty) {
                   FirebaseFirestore.instance.collection("users").add({
-                    "withPassword":false,
-                    "uId":user.user!.uid,
-                  }).then((value){
+                    "withPassword": false,
+                    "uId": user.user!.uid,
+                  }).then((value) {
                     Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const SetPasswordForGoogleScreen(),
+                          builder: (context) =>
+                              const SetPasswordForGoogleScreen(),
                         ),
-                            (route) => false);
-                  }).catchError((e){
+                        (route) => false);
+                  }).catchError((e) {
                     showAwesomeDialog(context, e.toString());
                   });
-                }else{
+                } else {
                   for (var element in value.docs) {
-                    if (element.data()["withPassword"]){
+                    if (element.data()["withPassword"]) {
                       Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(
                             builder: (context) => const HomeScreen(),
                           ),
-                              (route) => false);
-                    }else{
+                          (route) => false);
+                    } else {
                       Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const SetPasswordForGoogleScreen(),
+                            builder: (context) =>
+                                const SetPasswordForGoogleScreen(),
                           ),
-                              (route) => false);
+                          (route) => false);
                     }
                   }
                 }
-              }).catchError((e){
+              }).catchError((e) {
                 showAwesomeDialog(context, e.toString());
               });
-
             }).catchError((e) {
               showAwesomeDialog(context, e.toString());
             });
-          }).catchError((e){
+          }).catchError((e) {
             showAwesomeDialog(context, e.toString());
           });
-        }).catchError((e){
+        }).catchError((e) {
           showAwesomeDialog(context, e.toString());
         });
       }
-    } on SocketException{
+    } on SocketException {
       Navigator.pop(context);
       showAwesomeDialog(context, "No Internet Connection");
     }
-
-
   }
 }

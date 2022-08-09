@@ -1,36 +1,30 @@
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:email_validator/email_validator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutterfirebase/components/background.dart';
+import 'package:flutterfirebase/components/loading_dialog.dart';
 
 import '../components/awesome_dialog.dart';
-import '../components/loading_dialog.dart';
-import '../screens/home_screen.dart';
+import '../components/background.dart';
 
-class SetPasswordForGoogleScreen extends StatefulWidget {
-  const SetPasswordForGoogleScreen({Key? key}) : super(key: key);
+class ResetPassword extends StatefulWidget {
+  const ResetPassword({Key? key}) : super(key: key);
 
   @override
-  State<SetPasswordForGoogleScreen> createState() =>
-      _SetPasswordForGoogleScreenState();
+  State<ResetPassword> createState() => _ResetPasswordState();
 }
 
-class _SetPasswordForGoogleScreenState
-    extends State<SetPasswordForGoogleScreen> {
+class _ResetPasswordState extends State<ResetPassword> {
   GlobalKey<FormState> formState = GlobalKey<FormState>();
+  final TextEditingController emailController = TextEditingController();
 
-  var user = FirebaseAuth.instance.currentUser;
-
-  final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmationPasswordController =
-      TextEditingController();
+  String message = "Enter Your Email Address";
+  Color messageColor = Colors.red;
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-
     return Scaffold(
       body: SafeArea(
         child: Stack(
@@ -41,17 +35,12 @@ class _SetPasswordForGoogleScreenState
                 children: [
                   Container(
                     margin: EdgeInsets.only(
-                      left: size.width * .08,
-                      right: size.width * .08,
-                      bottom: size.height * .07,
-                      top: size.height * .32,
-                    ),
+                        bottom: size.height * .10, top: size.height * .23),
                     child: Text(
-                      "Set Password For Gmail",
-                      textAlign: TextAlign.center,
+                      "Reset Password",
                       style: TextStyle(
                         color: const Color.fromARGB(255, 0, 43, 91),
-                        fontSize: size.width * .07,
+                        fontSize: size.width * .08,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -88,52 +77,36 @@ class _SetPasswordForGoogleScreenState
                                       left: size.width * .04,
                                       right: size.width * .15),
                                   child: TextFormField(
-                                    controller: passwordController,
+                                    controller: emailController,
                                     validator: (val) {
-                                      if (val!.isEmpty) {
-                                        return "Please Enter The New Password";
+                                      if (!EmailValidator.validate(val!)) {
+                                        return "Email is Not Valid";
                                       }
                                       return null;
                                     },
-                                    obscureText: true,
-                                    style: const TextStyle(
-                                      color: Color.fromARGB(255, 0, 43, 91),
-                                    ),
-                                    decoration: const InputDecoration(
-                                      border: InputBorder.none,
-                                      icon: Icon(Icons.password_outlined,
-                                          color:
-                                              Color.fromARGB(255, 0, 43, 91)),
-                                      hintText: "Password",
-                                    ),
-                                  ),
-                                ),
-                                Container(
-                                  margin: EdgeInsets.only(
-                                      left: size.width * .04,
-                                      right: size.width * .15),
-                                  child: TextFormField(
-                                    controller: confirmationPasswordController,
-                                    validator: (val) {
-                                      if (val!.isEmpty) {
-                                        return "Please Enter The Confirmation Password";
-                                      } else if (val !=
-                                          passwordController.text) {
-                                        return "Confirmation Password Not Match";
-                                      }
-                                      return null;
-                                    },
-                                    obscureText: true,
                                     style: const TextStyle(
                                       color: Color.fromARGB(255, 0, 43, 91),
                                     ),
                                     decoration: const InputDecoration(
                                       border: InputBorder.none,
                                       icon: Icon(
-                                        Icons.password_outlined,
+                                        Icons.email_outlined,
                                         color: Color.fromARGB(255, 0, 43, 91),
                                       ),
-                                      hintText: "Confirmation Password",
+                                      hintText: "Email",
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  margin: EdgeInsets.only(
+                                      left: size.width * .07,
+                                      right: size.width * .10,),
+                                  width: double.infinity,
+                                  child: Text(
+                                    message,
+                                    textAlign: TextAlign.start,
+                                    style: TextStyle(
+                                      color: messageColor,
                                     ),
                                   ),
                                 ),
@@ -145,7 +118,7 @@ class _SetPasswordForGoogleScreenState
                           alignment: Alignment.centerRight,
                           child: GestureDetector(
                             onTap: () async {
-                              _setPassword();
+                              _resetPassword(context);
                             },
                             child: Container(
                               margin: EdgeInsets.only(right: size.width * .04),
@@ -173,19 +146,20 @@ class _SetPasswordForGoogleScreenState
                       ],
                     ),
                   ),
-                  const SizedBox(height: 18),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const HomeScreen(),
-                          ),
-                          (route) => false);
-                    },
-                    child: const Text("Not Now"),
-                  ),
                 ],
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.all(8),
+              child: IconButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                icon: const Icon(
+                  Icons.arrow_back,
+                  size: 32,
+                  color: Colors.white,
+                ),
               ),
             ),
           ],
@@ -194,42 +168,21 @@ class _SetPasswordForGoogleScreenState
     );
   }
 
-  _setPassword() async{
+  _resetPassword(context) async{
+
     if (formState.currentState!.validate()) {
       showLoadingDialog(context);
       try {
         final result = await InternetAddress.lookup('example.com');
         if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-          FirebaseAuth.instance.currentUser!
-              .updatePassword(passwordController.text)
+          FirebaseAuth.instance
+              .sendPasswordResetEmail(email: emailController.text)
               .then((value) {
-            FirebaseFirestore.instance
-                .collection("users")
-                .where("uId", isEqualTo: FirebaseAuth.instance.currentUser!.uid)
-                .get()
-                .then((value) {
-              for (var element in value.docs) {
-                FirebaseFirestore.instance
-                    .collection("users")
-                    .doc(element.id)
-                    .update({
-                  "withPassword": true,
-                }).then((value) {
-                  Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const HomeScreen(),
-                      ),
-                          (route) => false);
-                }).catchError((e) {
-                  Navigator.pop(context);
-                  showAwesomeDialog(context, e.toString());
-                });
-              }
-            }).catchError((e) {
-              Navigator.pop(context);
-              showAwesomeDialog(context, e.toString());
+            setState(() {
+              message = "Reset Message was sent to your Email";
+              messageColor = Colors.green;
             });
+            Navigator.pop(context);
           }).catchError((e) {
             Navigator.pop(context);
             showAwesomeDialog(context, e.toString());
@@ -239,7 +192,6 @@ class _SetPasswordForGoogleScreenState
         Navigator.pop(context);
         showAwesomeDialog(context, "No Internet Connection");
       }
-
     }
   }
 }
