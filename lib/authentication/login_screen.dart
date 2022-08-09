@@ -24,7 +24,6 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   GlobalKey<FormState> formState = GlobalKey<FormState>();
-
   late String email, password;
 
   @override
