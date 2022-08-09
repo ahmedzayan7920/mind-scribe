@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -96,33 +97,54 @@ class _VerificationScreenState extends State<VerificationScreen> {
     }
   }
 
-  checkEmailVerified() {
-    FirebaseAuth.instance.currentUser!.reload().then((value) {
-      setState(() {
-        isEmailVerified = FirebaseAuth.instance.currentUser!.emailVerified;
-      });
-      if (isEmailVerified) {
-        timer!.cancel();
-        Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const HomeScreen(),
-            ),
-            (route) => false);
+  checkEmailVerified() async{
+
+    try {
+      final result = await InternetAddress.lookup('example.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        FirebaseAuth.instance.currentUser!.reload().then((value) {
+          setState(() {
+            isEmailVerified = FirebaseAuth.instance.currentUser!.emailVerified;
+          });
+          if (isEmailVerified) {
+            timer!.cancel();
+            Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const HomeScreen(),
+                ),
+                    (route) => false);
+          }
+        }).catchError((e) {
+          Navigator.pop(context);
+          showAwesomeDialog(context, e.toString());
+        });
       }
-    }).catchError((e) {
+    } on SocketException{
       Navigator.pop(context);
-      showAwesomeDialog(context, e.toString());
-    });
+      showAwesomeDialog(context, "No Internet Connection");
+    }
+
+
+
   }
 
   Future sendVerificationEmail() async {
-    await FirebaseAuth.instance.currentUser!
-        .sendEmailVerification()
-        .catchError((e) {
+
+    try {
+      final result = await InternetAddress.lookup('example.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        await FirebaseAuth.instance.currentUser!
+            .sendEmailVerification()
+            .catchError((e) {
+          Navigator.pop(context);
+          showAwesomeDialog(context, e.toString());
+        });
+      }
+    } on SocketException{
       Navigator.pop(context);
-      showAwesomeDialog(context, e.toString());
-    });
+      showAwesomeDialog(context, "No Internet Connection");
+    }
   }
 
   @override

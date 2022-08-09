@@ -160,55 +160,59 @@ class _AddNotesState extends State<AddNotes> {
   }
 
   addNotes(context) async {
-    if (withImage) {
-      if (file == null) {
-        return showAwesomeDialog(context, "please choose Image");
-      } else {
-        var formData = formState.currentState;
-        if (formData!.validate()) {
-          formData.save();
-          showLoadingDialog(context);
-          await ref.putFile(file!).then((p0) {
-            ref.getDownloadURL().then((value) {
-              notesRef.add({
-                "title": title,
-                "note": note,
-                "imageUrl": value,
-                "userId": FirebaseAuth.instance.currentUser!.uid
-              }).then((value) {
-                Navigator.pop(context);
-                Navigator.pop(context);
+    var formData = formState.currentState;
+    if (formData!.validate()) {
+      formData.save();
+      showLoadingDialog(context);
+      try {
+        final result = await InternetAddress.lookup('example.com');
+        if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+          if (withImage) {
+            if (file == null) {
+              return showAwesomeDialog(context, "please choose Image");
+            } else {
+              await ref.putFile(file!).then((p0) {
+                ref.getDownloadURL().then((value) {
+                  notesRef.add({
+                    "title": title,
+                    "note": note,
+                    "imageUrl": value,
+                    "userId": FirebaseAuth.instance.currentUser!.uid
+                  }).then((value) {
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                  }).catchError((e) {
+                    Navigator.pop(context);
+                    showAwesomeDialog(context, e.toString());
+                  });
+                }).catchError((e) {
+                  Navigator.pop(context);
+                  showAwesomeDialog(context, e.toString());
+                });
               }).catchError((e) {
                 Navigator.pop(context);
                 showAwesomeDialog(context, e.toString());
               });
+            }
+          } else {
+            notesRef.add({
+              "title": title,
+              "note": note,
+              "imageUrl": "",
+              "userId": FirebaseAuth.instance.currentUser!.uid
+            }).then((value) {
+              Navigator.pop(context);
+              Navigator.pop(context);
             }).catchError((e) {
               Navigator.pop(context);
               showAwesomeDialog(context, e.toString());
             });
-          }).catchError((e) {
-            Navigator.pop(context);
-            showAwesomeDialog(context, e.toString());
-          });
+          }
         }
-      }
-    } else {
-      var formData = formState.currentState;
-      if (formData!.validate()) {
-        formData.save();
-        showLoadingDialog(context);
-        notesRef.add({
-          "title": title,
-          "note": note,
-          "imageUrl": "",
-          "userId": FirebaseAuth.instance.currentUser!.uid
-        }).then((value) {
-          Navigator.pop(context);
-          Navigator.pop(context);
-        }).catchError((e) {
-          Navigator.pop(context);
-          showAwesomeDialog(context, e.toString());
-        });
+      } on SocketException {
+        Navigator.pop(context);
+
+        showAwesomeDialog(context, "No Internet Connection");
       }
     }
   }

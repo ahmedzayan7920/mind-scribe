@@ -44,6 +44,7 @@ dependencies:
   image_picker:
   cached_network_image:
   sign_in_button:
+  connectivity_plus:
 
 dev_dependencies:
   flutter_test:

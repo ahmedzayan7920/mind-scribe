@@ -205,50 +205,80 @@ class _EditNotesState extends State<EditNotes> {
     if (formData!.validate()) {
       formData.save();
       showLoadingDialog(context);
-      if (withImage) {
-        if (file == null && widget.noteData["imageUrl"] == "") {
-          Navigator.pop(context);
-          return showAwesomeDialog(context, "please choose Image");
-        } else if (file == null && widget.noteData["imageUrl"] != ""){
-          notesRef.doc(widget.docId).update({
-            "title": title,
-            "note": note,
-          }).then((value) {
-            Navigator.pop(context);
-            Navigator.pop(context);
-          }).catchError((e) {
-            Navigator.pop(context);
-            showAwesomeDialog(context, e.toString());
-          });
-        }
-        else {
-          await ref.putFile(file!).then((p0) {
-            ref.getDownloadURL().then((value) {
-              if (oldImage) {
-                FirebaseStorage.instance
-                    .refFromURL(widget.noteData["imageUrl"])
-                    .delete()
-                    .then((val) {
-                  notesRef.doc(widget.docId).update({
-                    "title": title,
-                    "note": note,
-                    "imageUrl": value,
-                  }).then((value) {
-                    Navigator.pop(context);
-                    Navigator.pop(context);
-                  }).catchError((e) {
-                    Navigator.pop(context);
-                    showAwesomeDialog(context, e.toString());
-                  });
+      try {
+        final result = await InternetAddress.lookup('example.com');
+        if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+          if (withImage) {
+            if (file == null && widget.noteData["imageUrl"] == "") {
+              Navigator.pop(context);
+              return showAwesomeDialog(context, "please choose Image");
+            } else if (file == null && widget.noteData["imageUrl"] != ""){
+              notesRef.doc(widget.docId).update({
+                "title": title,
+                "note": note,
+              }).then((value) {
+                Navigator.pop(context);
+                Navigator.pop(context);
+              }).catchError((e) {
+                Navigator.pop(context);
+                showAwesomeDialog(context, e.toString());
+              });
+            }
+            else {
+              await ref.putFile(file!).then((p0) {
+                ref.getDownloadURL().then((value) {
+                  if (oldImage) {
+                    FirebaseStorage.instance
+                        .refFromURL(widget.noteData["imageUrl"])
+                        .delete()
+                        .then((val) {
+                      notesRef.doc(widget.docId).update({
+                        "title": title,
+                        "note": note,
+                        "imageUrl": value,
+                      }).then((value) {
+                        Navigator.pop(context);
+                        Navigator.pop(context);
+                      }).catchError((e) {
+                        Navigator.pop(context);
+                        showAwesomeDialog(context, e.toString());
+                      });
+                    }).catchError((e) {
+                      Navigator.pop(context);
+                      showAwesomeDialog(context, e.toString());
+                    });
+                  } else {
+                    notesRef.doc(widget.docId).update({
+                      "title": title,
+                      "note": note,
+                      "imageUrl": value,
+                    }).then((value) {
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                    }).catchError((e) {
+                      Navigator.pop(context);
+                      showAwesomeDialog(context, e.toString());
+                    });
+                  }
                 }).catchError((e) {
                   Navigator.pop(context);
                   showAwesomeDialog(context, e.toString());
                 });
-              } else {
+              }).catchError((e) {
+                Navigator.pop(context);
+                showAwesomeDialog(context, e.toString());
+              });
+            }
+          } else {
+            if (oldImage) {
+              FirebaseStorage.instance
+                  .refFromURL(widget.noteData["imageUrl"])
+                  .delete()
+                  .then((val) {
                 notesRef.doc(widget.docId).update({
                   "title": title,
                   "note": note,
-                  "imageUrl": value,
+                  "imageUrl": "",
                 }).then((value) {
                   Navigator.pop(context);
                   Navigator.pop(context);
@@ -256,50 +286,28 @@ class _EditNotesState extends State<EditNotes> {
                   Navigator.pop(context);
                   showAwesomeDialog(context, e.toString());
                 });
-              }
-            }).catchError((e) {
-              Navigator.pop(context);
-              showAwesomeDialog(context, e.toString());
-            });
-          }).catchError((e) {
-            Navigator.pop(context);
-            showAwesomeDialog(context, e.toString());
-          });
+              }).catchError((e) {
+                Navigator.pop(context);
+                showAwesomeDialog(context, e.toString());
+              });
+            } else {
+              notesRef.doc(widget.docId).update({
+                "title": title,
+                "note": note,
+                "imageUrl": "",
+              }).then((value) {
+                Navigator.pop(context);
+                Navigator.pop(context);
+              }).catchError((e) {
+                Navigator.pop(context);
+                showAwesomeDialog(context, e.toString());
+              });
+            }
+          }
         }
-      } else {
-        if (oldImage) {
-          FirebaseStorage.instance
-              .refFromURL(widget.noteData["imageUrl"])
-              .delete()
-              .then((val) {
-            notesRef.doc(widget.docId).update({
-              "title": title,
-              "note": note,
-              "imageUrl": "",
-            }).then((value) {
-              Navigator.pop(context);
-              Navigator.pop(context);
-            }).catchError((e) {
-              Navigator.pop(context);
-              showAwesomeDialog(context, e.toString());
-            });
-          }).catchError((e) {
-            Navigator.pop(context);
-            showAwesomeDialog(context, e.toString());
-          });
-        } else {
-          notesRef.doc(widget.docId).update({
-            "title": title,
-            "note": note,
-            "imageUrl": "",
-          }).then((value) {
-            Navigator.pop(context);
-            Navigator.pop(context);
-          }).catchError((e) {
-            Navigator.pop(context);
-            showAwesomeDialog(context, e.toString());
-          });
-        }
+      } on SocketException{
+        Navigator.pop(context);
+        showAwesomeDialog(context, "No Internet Connection");
       }
     }
   }

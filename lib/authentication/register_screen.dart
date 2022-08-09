@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,7 +14,6 @@ import '../components/background.dart';
 import 'login_screen.dart';
 import 'set_password_for_google_screen.dart';
 import 'verification_screen.dart';
-
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -50,11 +51,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                   SizedBox(
-                    height: size.height * .25,
+                    height: size.height * .28,
                     child: Stack(
                       children: [
                         Container(
-                          height: size.height * .25,
+                          height: size.height * .28,
                           margin: EdgeInsets.only(
                             right: size.width * .15,
                           ),
@@ -93,11 +94,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       return null;
                                     },
                                     style: const TextStyle(
-                                        color: Color.fromARGB(255, 0, 43, 91),),
+                                      color: Color.fromARGB(255, 0, 43, 91),
+                                    ),
                                     decoration: const InputDecoration(
                                       border: InputBorder.none,
-                                      icon: Icon(Icons.person_outline,
-                                          color: Color.fromARGB(255, 0, 43, 91),),
+                                      icon: Icon(
+                                        Icons.person_outline,
+                                        color: Color.fromARGB(255, 0, 43, 91),
+                                      ),
                                       hintText: "Name",
                                     ),
                                   ),
@@ -121,7 +125,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     decoration: const InputDecoration(
                                       border: InputBorder.none,
                                       icon: Icon(Icons.email_outlined,
-                                          color: Color.fromARGB(255, 0, 43, 91)),
+                                          color:
+                                              Color.fromARGB(255, 0, 43, 91)),
                                       hintText: "Email",
                                     ),
                                   ),
@@ -148,7 +153,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     decoration: const InputDecoration(
                                       border: InputBorder.none,
                                       icon: Icon(Icons.password_outlined,
-                                          color: Color.fromARGB(255, 0, 43, 91)),
+                                          color:
+                                              Color.fromARGB(255, 0, 43, 91)),
                                       hintText: "Password",
                                     ),
                                   ),
@@ -239,109 +245,124 @@ class _RegisterScreenState extends State<RegisterScreen> {
     var formData = formState.currentState;
     if (formData!.validate()) {
       formData.save();
-      try {
-        showLoadingDialog(context);
-        await FirebaseAuth.instance
-            .createUserWithEmailAndPassword(
-          email: email,
-          password: password,
-        )
-            .then((userValue) {
-          userValue.user!.updateDisplayName(name);
+      showLoadingDialog(context);
 
-          FirebaseFirestore.instance.collection("users").add({
-            "withPassword":true,
-            "uId":userValue.user!.uid,
-          }).then((value){
-            Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const VerificationScreen(),
-                ),
-                    (route) => false);
-          }).catchError((e){
+      try {
+        final result = await InternetAddress.lookup('example.com');
+        if (result.isNotEmpty && result[0].rawAddress.isNotEmpty){
+          await FirebaseAuth.instance
+              .createUserWithEmailAndPassword(
+            email: email,
+            password: password,
+          )
+              .then((userValue) {
+            userValue.user!.updateDisplayName(name);
+
+            FirebaseFirestore.instance.collection("users").add({
+              "withPassword": true,
+              "uId": userValue.user!.uid,
+            }).then((value) {
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const VerificationScreen(),
+                  ),
+                      (route) => false);
+            }).catchError((e) {
+              Navigator.pop(context);
+              showAwesomeDialog(context, e.toString());
+            });
+          }).catchError((e) {
             Navigator.pop(context);
-            showAwesomeDialog(context, e.toString());
+            if (e.toString().contains("weak-password")) {
+              showAwesomeDialog(context, "The Password is too weak");
+            } else if (e.toString().contains("email-already-in-use")) {
+              showAwesomeDialog(
+                  context, "The account already exists for that email");
+            } else {
+              showAwesomeDialog(context, e.toString());
+            }
           });
-        }).catchError((e){
-          Navigator.pop(context);
-          if (e.toString().contains("weak-password")) {
-            showAwesomeDialog(context, "The Password is too weak");
-          }
-          else if (e.toString().contains("email-already-in-use")) {
-            showAwesomeDialog(context, "The account already exists for that email");
-          } else {
-            showAwesomeDialog(context, e.toString());
-          }
-        });
-      } catch (e) {
+        }
+      } on SocketException{
         Navigator.pop(context);
-        if (e.toString().contains("weak-password")) {
-          showAwesomeDialog(context, "The Password is too weak");
-        }
-        else if (e.toString().contains("email-already-in-use")) {
-          showAwesomeDialog(context, "The account already exists for that email");
-        } else {
-          showAwesomeDialog(context, e.toString());
-        }
+        showAwesomeDialog(context, "No Internet Connection");
       }
+
+
     }
   }
 
   signInWithGoogle() async {
-    await GoogleSignIn().signIn().then((googleUser) async {
-      await googleUser!.authentication.then((googleAuth){
-        final credential = GoogleAuthProvider.credential(
-          accessToken: googleAuth.accessToken,
-          idToken: googleAuth.idToken,
-        );
-        FirebaseAuth.instance.signInWithCredential(credential).then((user) {
-          FirebaseFirestore.instance.collection("users").where("uId", isEqualTo: user.user!.uid).get().then((value){
-            if (value.docs.isEmpty){
-              FirebaseFirestore.instance.collection("users").add({
-                "withPassword":false,
-                "uId":user.user!.uid,
-              }).then((value){
-                Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const SetPasswordForGoogleScreen(),
-                    ),
-                        (route) => false);
-              }).catchError((e){
+
+    try {
+      final result = await InternetAddress.lookup('example.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        await GoogleSignIn().signIn().then((googleUser) async {
+          await googleUser!.authentication.then((googleAuth) {
+            final credential = GoogleAuthProvider.credential(
+              accessToken: googleAuth.accessToken,
+              idToken: googleAuth.idToken,
+            );
+            FirebaseAuth.instance.signInWithCredential(credential).then((user) {
+              FirebaseFirestore.instance
+                  .collection("users")
+                  .where("uId", isEqualTo: user.user!.uid)
+                  .get()
+                  .then((value) {
+                if (value.docs.isEmpty) {
+                  FirebaseFirestore.instance.collection("users").add({
+                    "withPassword": false,
+                    "uId": user.user!.uid,
+                  }).then((value) {
+                    Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SetPasswordForGoogleScreen(),
+                        ),
+                            (route) => false);
+                  }).catchError((e) {
+                    showAwesomeDialog(context, e.toString());
+                  });
+                } else {
+                  for (var element in value.docs) {
+                    if (element.data()["withPassword"]) {
+                      Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const HomeScreen(),
+                          ),
+                              (route) => false);
+                    } else {
+                      Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                            const SetPasswordForGoogleScreen(),
+                          ),
+                              (route) => false);
+                    }
+                  }
+                }
+              }).catchError((e) {
                 showAwesomeDialog(context, e.toString());
               });
-            }else{
-              for (var element in value.docs) {
-                if (element.data()["withPassword"]){
-                  Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const HomeScreen(),
-                      ),
-                          (route) => false);
-                }else{
-                  Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const SetPasswordForGoogleScreen(),
-                      ),
-                          (route) => false);
-                }
-              }
-            }
-          }).catchError((e){
+            }).catchError((e) {
+              showAwesomeDialog(context, e.toString());
+            });
+          }).catchError((e) {
             showAwesomeDialog(context, e.toString());
           });
-
         }).catchError((e) {
           showAwesomeDialog(context, e.toString());
         });
-      }).catchError((e){
-        showAwesomeDialog(context, e.toString());
-      });
-    }).catchError((e){
-      showAwesomeDialog(context, e.toString());
-    });
+      }
+    } on SocketException{
+      Navigator.pop(context);
+      showAwesomeDialog(context, "No Internet Connection");
+    }
+
+
+
   }
 }

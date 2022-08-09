@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -229,104 +231,118 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  signInWithEmailAndPassword() {
+  signInWithEmailAndPassword() async{
     var formData = formState.currentState;
     if (formData!.validate()) {
       formData.save();
       showLoadingDialog(context);
       try {
-        FirebaseAuth.instance
-            .signInWithEmailAndPassword(
-          email: email,
-          password: password,
-        )
-            .then((userValue) {
-          if (userValue.user!.emailVerified) {
-            Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const HomeScreen(),
-                ),
-                    (route) => false);
-          } else {
-            Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const VerificationScreen(),
-                ),
-                    (route) => false);
-          }
-        }).catchError((e) {
-          Navigator.pop(context);
-          if (e.code == 'user-not-found') {
-            showAwesomeDialog(context, "No user found for that email");
-          } else if (e.code == 'wrong-password') {
-            showAwesomeDialog(context, "Wrong password");
-          } else {
-            showAwesomeDialog(context, e.toString());
-          }
-        });
-      } catch (e) {
+        final result = await InternetAddress.lookup('example.com');
+        if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+          FirebaseAuth.instance
+              .signInWithEmailAndPassword(
+            email: email,
+            password: password,
+          )
+              .then((userValue) {
+            if (userValue.user!.emailVerified) {
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const HomeScreen(),
+                  ),
+                      (route) => false);
+            } else {
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const VerificationScreen(),
+                  ),
+                      (route) => false);
+            }
+          }).catchError((e) {
+            Navigator.pop(context);
+            if (e.code == 'user-not-found') {
+              showAwesomeDialog(context, "No user found for that email");
+            } else if (e.code == 'wrong-password') {
+              showAwesomeDialog(context, "Wrong password");
+            } else {
+              showAwesomeDialog(context, e.toString());
+            }
+          });
+        }
+      } on SocketException{
         Navigator.pop(context);
-        showAwesomeDialog(context, e.toString());
+        showAwesomeDialog(context, "No Internet Connection");
       }
     }
   }
 
   signInWithGoogle() async {
-    await GoogleSignIn().signIn().then((googleUser) async {
-      await googleUser!.authentication.then((googleAuth){
-        final credential = GoogleAuthProvider.credential(
-          accessToken: googleAuth.accessToken,
-          idToken: googleAuth.idToken,
-        );
-        FirebaseAuth.instance.signInWithCredential(credential).then((user) {
-          FirebaseFirestore.instance.collection("users").where("uId", isEqualTo: user.user!.uid).get().then((value){
-            if (value.docs.isEmpty){
-              FirebaseFirestore.instance.collection("users").add({
-                "withPassword":false,
-                "uId":user.user!.uid,
-              }).then((value){
-                Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const SetPasswordForGoogleScreen(),
-                    ),
-                        (route) => false);
+
+    try {
+      final result = await InternetAddress.lookup('example.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        await GoogleSignIn().signIn().then((googleUser) async {
+          await googleUser!.authentication.then((googleAuth){
+            final credential = GoogleAuthProvider.credential(
+              accessToken: googleAuth.accessToken,
+              idToken: googleAuth.idToken,
+            );
+            FirebaseAuth.instance.signInWithCredential(credential).then((user) {
+              FirebaseFirestore.instance.collection("users").where("uId", isEqualTo: user.user!.uid).get().then((value){
+                if (value.docs.isEmpty){
+                  FirebaseFirestore.instance.collection("users").add({
+                    "withPassword":false,
+                    "uId":user.user!.uid,
+                  }).then((value){
+                    Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SetPasswordForGoogleScreen(),
+                        ),
+                            (route) => false);
+                  }).catchError((e){
+                    showAwesomeDialog(context, e.toString());
+                  });
+                }else{
+                  for (var element in value.docs) {
+                    if (element.data()["withPassword"]){
+                      Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const HomeScreen(),
+                          ),
+                              (route) => false);
+                    }else{
+                      Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SetPasswordForGoogleScreen(),
+                          ),
+                              (route) => false);
+                    }
+                  }
+                }
               }).catchError((e){
                 showAwesomeDialog(context, e.toString());
               });
-            }else{
-              for (var element in value.docs) {
-                if (element.data()["withPassword"]){
-                  Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const HomeScreen(),
-                      ),
-                          (route) => false);
-                }else{
-                  Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const SetPasswordForGoogleScreen(),
-                      ),
-                          (route) => false);
-                }
-              }
-            }
+
+            }).catchError((e) {
+              showAwesomeDialog(context, e.toString());
+            });
           }).catchError((e){
             showAwesomeDialog(context, e.toString());
           });
-
-        }).catchError((e) {
+        }).catchError((e){
           showAwesomeDialog(context, e.toString());
         });
-      }).catchError((e){
-        showAwesomeDialog(context, e.toString());
-      });
-    }).catchError((e){
-      showAwesomeDialog(context, e.toString());
-    });
+      }
+    } on SocketException{
+      Navigator.pop(context);
+      showAwesomeDialog(context, "No Internet Connection");
+    }
+
+
   }
 }

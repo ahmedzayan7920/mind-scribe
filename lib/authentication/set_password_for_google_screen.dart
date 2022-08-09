@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -192,43 +194,55 @@ class _SetPasswordForGoogleScreenState
     );
   }
 
-  _setPassword() {
+  _setPassword() async{
     if (formState.currentState!.validate()) {
       showLoadingDialog(context);
-      FirebaseAuth.instance.currentUser!
-          .updatePassword(passwordController.text)
-          .then((value) {
-        FirebaseFirestore.instance
-            .collection("users")
-            .where("uId", isEqualTo: FirebaseAuth.instance.currentUser!.uid)
-            .get()
-            .then((value) {
-          for (var element in value.docs) {
+
+      try {
+        final result = await InternetAddress.lookup('example.com');
+        if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+          FirebaseAuth.instance.currentUser!
+              .updatePassword(passwordController.text)
+              .then((value) {
             FirebaseFirestore.instance
                 .collection("users")
-                .doc(element.id)
-                .update({
-              "withPassword": true,
-            }).then((value) {
-              Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const HomeScreen(),
-                  ),
-                  (route) => false);
+                .where("uId", isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+                .get()
+                .then((value) {
+              for (var element in value.docs) {
+                FirebaseFirestore.instance
+                    .collection("users")
+                    .doc(element.id)
+                    .update({
+                  "withPassword": true,
+                }).then((value) {
+                  Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HomeScreen(),
+                      ),
+                          (route) => false);
+                }).catchError((e) {
+                  Navigator.pop(context);
+                  showAwesomeDialog(context, e.toString());
+                });
+              }
             }).catchError((e) {
               Navigator.pop(context);
               showAwesomeDialog(context, e.toString());
             });
-          }
-        }).catchError((e) {
-          Navigator.pop(context);
-          showAwesomeDialog(context, e.toString());
-        });
-      }).catchError((e) {
+          }).catchError((e) {
+            Navigator.pop(context);
+            showAwesomeDialog(context, e.toString());
+          });
+        }
+      } on SocketException{
         Navigator.pop(context);
-        showAwesomeDialog(context, e.toString());
-      });
+        showAwesomeDialog(context, "No Internet Connection");
+      }
+
+
+
     }
   }
 }

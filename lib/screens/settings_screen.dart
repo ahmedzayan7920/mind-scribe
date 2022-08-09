@@ -429,20 +429,54 @@ class _SettingsScreenState extends State<SettingsScreen> {
         });
   }
 
-  changeImage(context) {
+  changeImage(context) async{
     showLoadingDialog(context);
-    if (file == null) {
-      return showAwesomeDialog(context, "please choose Image");
-    } else {
-      ref.putFile(file!).then((p0) {
-        ref.getDownloadURL().then((value) {
-          if (FirebaseAuth.instance.currentUser!.photoURL != null) {
-            String? oldUrl = FirebaseAuth.instance.currentUser!.photoURL!
+
+    try {
+      final result = await InternetAddress.lookup('example.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        if (file == null) {
+          return showAwesomeDialog(context, "please choose Image");
+        } else {
+          ref.putFile(file!).then((p0) {
+            ref.getDownloadURL().then((value) {
+              if (FirebaseAuth.instance.currentUser!.photoURL != null) {
+                String? oldUrl = FirebaseAuth.instance.currentUser!.photoURL!
                     .contains("firebase")
-                ? FirebaseAuth.instance.currentUser!.photoURL
-                : null;
-            if (oldUrl != null) {
-              FirebaseStorage.instance.refFromURL(oldUrl).delete().then((val) {
+                    ? FirebaseAuth.instance.currentUser!.photoURL
+                    : null;
+                if (oldUrl != null) {
+                  FirebaseStorage.instance.refFromURL(oldUrl).delete().then((val) {
+                    FirebaseAuth.instance.currentUser!
+                        .updatePhotoURL(value)
+                        .then((value) {
+                      setState(() {
+                        user = FirebaseAuth.instance.currentUser!;
+                      });
+
+                      Navigator.pop(context);
+                    }).catchError((e) {
+                      Navigator.pop(context);
+                      showAwesomeDialog(context, e.toString());
+                    });
+                  }).catchError((e) {
+                    Navigator.pop(context);
+                    showAwesomeDialog(context, e.toString());
+                  });
+                } else {
+                  FirebaseAuth.instance.currentUser!
+                      .updatePhotoURL(value)
+                      .then((value) {
+                    setState(() {
+                      user = FirebaseAuth.instance.currentUser!;
+                    });
+                    Navigator.pop(context);
+                  }).catchError((e) {
+                    Navigator.pop(context);
+                    showAwesomeDialog(context, e.toString());
+                  });
+                }
+              } else {
                 FirebaseAuth.instance.currentUser!
                     .updatePhotoURL(value)
                     .then((value) {
@@ -455,45 +489,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Navigator.pop(context);
                   showAwesomeDialog(context, e.toString());
                 });
-              }).catchError((e) {
-                Navigator.pop(context);
-                showAwesomeDialog(context, e.toString());
-              });
-            } else {
-              FirebaseAuth.instance.currentUser!
-                  .updatePhotoURL(value)
-                  .then((value) {
-                setState(() {
-                  user = FirebaseAuth.instance.currentUser!;
-                });
-                Navigator.pop(context);
-              }).catchError((e) {
-                Navigator.pop(context);
-                showAwesomeDialog(context, e.toString());
-              });
-            }
-          } else {
-            FirebaseAuth.instance.currentUser!
-                .updatePhotoURL(value)
-                .then((value) {
-              setState(() {
-                user = FirebaseAuth.instance.currentUser!;
-              });
-
-              Navigator.pop(context);
+              }
             }).catchError((e) {
               Navigator.pop(context);
               showAwesomeDialog(context, e.toString());
             });
-          }
-        }).catchError((e) {
-          Navigator.pop(context);
-          showAwesomeDialog(context, e.toString());
-        });
-      }).catchError((e) {
-        Navigator.pop(context);
-        showAwesomeDialog(context, e.toString());
-      });
+          }).catchError((e) {
+            Navigator.pop(context);
+            showAwesomeDialog(context, e.toString());
+          });
+        }
+      }
+    } on SocketException{
+      Navigator.pop(context);
+      showAwesomeDialog(context, "No Internet Connection");
     }
+
+
   }
 }
