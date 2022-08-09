@@ -43,6 +43,7 @@ dependencies:
   email_validator:
   image_picker:
   cached_network_image:
+  sign_in_button:
 
 dev_dependencies:
   flutter_test:

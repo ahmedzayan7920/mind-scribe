@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutterfirebase/authentication/background.dart';
 
 import '../components/awesome_dialog.dart';
 import '../components/loading_dialog.dart';
@@ -26,80 +27,166 @@ class _SetPasswordForGoogleScreenState
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Set Password"),
-        centerTitle: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Form(
-          key: formState,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 20),
-              TextFormField(
-                controller: passwordController,
-                validator: (val) {
-                  if (val!.isEmpty) {
-                    return "Please Enter The New Password";
-                  }
-                  return null;
-                },
-                obscureText: true,
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.password),
-                  hintText: "Enter Your Password",
-                  labelText: 'Password',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Colors.grey),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: confirmationPasswordController,
-                validator: (val) {
-                  if (val!.isEmpty) {
-                    return "Please Enter The Confirmation Password";
-                  } else if (val != passwordController.text) {
-                    return "Confirmation Password Not Match";
-                  }
-                  return null;
-                },
-                obscureText: true,
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.password),
-                  hintText: "Enter Your Confirmation Password",
-                  labelText: 'Confirmation Password',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Colors.grey),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              ElevatedButton(
-                onPressed: () {
-                  _setPassword();
-                },
-                child: const Text("Set Password"),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const HomeScreen(),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            const Background(),
+            SingleChildScrollView(
+              child: Column(
+                children: [
+                  Container(
+                    margin: EdgeInsets.only(
+                      left: size.width * .08,
+                      right: size.width * .08,
+                      bottom: size.height * .07,
+                      top: size.height * .32,
+                    ),
+                    child: Text(
+                      "Set Password Form Gmail",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: const Color.fromARGB(255, 0, 43, 91),
+                        fontSize: size.width * .07,
+                        fontWeight: FontWeight.bold,
                       ),
-                      (route) => false);
-                },
-                child: const Text("Not Now"),
+                    ),
+                  ),
+                  SizedBox(
+                    height: size.height * .19,
+                    child: Stack(
+                      children: [
+                        Container(
+                          height: size.height * .19,
+                          margin: EdgeInsets.only(
+                            right: size.width * .15,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.only(
+                              topRight: Radius.circular(size.width * .20),
+                              bottomRight: Radius.circular(size.width * .20),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.5),
+                                blurRadius: size.width * .03,
+                              ),
+                            ],
+                          ),
+                          child: Form(
+                            key: formState,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Container(
+                                  margin: EdgeInsets.only(
+                                      left: size.width * .04,
+                                      right: size.width * .15),
+                                  child: TextFormField(
+                                    controller: passwordController,
+                                    validator: (val) {
+                                      if (val!.isEmpty) {
+                                        return "Please Enter The New Password";
+                                      }
+                                      return null;
+                                    },
+                                    obscureText: true,
+                                    style: const TextStyle(
+                                      color: Color.fromARGB(255, 0, 43, 91),
+                                    ),
+                                    decoration: const InputDecoration(
+                                      border: InputBorder.none,
+                                      icon: Icon(Icons.password_outlined,
+                                          color:
+                                              Color.fromARGB(255, 0, 43, 91)),
+                                      hintText: "Password",
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  margin: EdgeInsets.only(
+                                      left: size.width * .04,
+                                      right: size.width * .15),
+                                  child: TextFormField(
+                                    controller: confirmationPasswordController,
+                                    validator: (val) {
+                                      if (val!.isEmpty) {
+                                        return "Please Enter The Confirmation Password";
+                                      } else if (val !=
+                                          passwordController.text) {
+                                        return "Confirmation Password Not Match";
+                                      }
+                                      return null;
+                                    },
+                                    obscureText: true,
+                                    style: const TextStyle(
+                                      color: Color.fromARGB(255, 0, 43, 91),
+                                    ),
+                                    decoration: const InputDecoration(
+                                      border: InputBorder.none,
+                                      icon: Icon(
+                                        Icons.password_outlined,
+                                        color: Color.fromARGB(255, 0, 43, 91),
+                                      ),
+                                      hintText: "Confirmation Password",
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: GestureDetector(
+                            onTap: () async {
+                              _setPassword();
+                            },
+                            child: Container(
+                              margin: EdgeInsets.only(right: size.width * .04),
+                              height: size.height * .20,
+                              width: size.width * .20,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                  colors: [
+                                    Color.fromARGB(255, 37, 109, 133),
+                                    Color.fromARGB(255, 0, 43, 91),
+                                  ],
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.arrow_forward_outlined,
+                                color: Colors.white,
+                                size: size.width * .08,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const HomeScreen(),
+                          ),
+                          (route) => false);
+                    },
+                    child: const Text("Not Now"),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

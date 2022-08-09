@@ -12,11 +12,11 @@ import 'package:image_picker/image_picker.dart';
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart';
 
+import '../authentication/login_screen.dart';
 import '../components/awesome_dialog.dart';
 import '../components/loading_dialog.dart';
 import '../settings/change_email_screen.dart';
 import '../settings/change_password_screen.dart';
-import '../authentication/login_screen.dart';
 import '../authentication/verification_screen.dart';
 
 class SettingsScreen extends StatefulWidget {

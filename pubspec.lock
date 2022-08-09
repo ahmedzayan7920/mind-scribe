@@ -254,6 +254,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  font_awesome_flutter:
+    dependency: transitive
+    description:
+      name: font_awesome_flutter
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "10.1.0"
   google_sign_in:
     dependency: "direct main"
     description:
@@ -485,6 +492,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.27.5"
+  sign_in_button:
+    dependency: "direct main"
+    description:
+      name: sign_in_button
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.0.0"
   simple_animations:
     dependency: transitive
     description:
