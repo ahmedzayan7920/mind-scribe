@@ -248,7 +248,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             const SizedBox(height: 70),
             user!.photoURL == null
-                ? const Icon(Icons.person, size: 100)
+                ? const Icon(Icons.person_outline, size: 100,color: Color.fromARGB(255, 0, 43, 91),)
                 : CachedNetworkImage(
                     height: 100,
                     width: 100,
@@ -256,7 +256,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     placeholder: (context, url) =>
                         const CircularProgressIndicator(),
                     errorWidget: (context, url, error) =>
-                        const Icon(Icons.person, size: 100),
+                        const Icon(Icons.person_outline, size: 100),
                     imageBuilder: (context, imageProvider) => Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(50),

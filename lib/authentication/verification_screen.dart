@@ -130,7 +130,6 @@ class _VerificationScreenState extends State<VerificationScreen> {
   }
 
   Future sendVerificationEmail() async {
-
     try {
       final result = await InternetAddress.lookup('example.com');
       if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {

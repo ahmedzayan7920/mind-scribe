@@ -48,7 +48,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
               child: user.photoURL == null
                   ? const Icon(
-                      Icons.person,
+                      Icons.person_outline,
                       size: 100,
                       color: Color.fromARGB(255, 0, 43, 91),
                     )
@@ -59,7 +59,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       placeholder: (context, url) =>
                           const CircularProgressIndicator(),
                       errorWidget: (context, url, error) => const Icon(
-                        Icons.person,
+                        Icons.person_outline,
                         size: 120,
                         color: Color.fromARGB(255, 0, 43, 91),
                       ),
