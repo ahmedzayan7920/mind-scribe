@@ -8,7 +8,7 @@ import 'package:sign_in_button/sign_in_button.dart';
 import '../components/awesome_dialog.dart';
 import '../components/loading_dialog.dart';
 import '../screens/home_screen.dart';
-import 'background.dart';
+import '../components/background.dart';
 import 'login_screen.dart';
 import 'set_password_for_google_screen.dart';
 import 'verification_screen.dart';

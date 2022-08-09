@@ -25,6 +25,7 @@ class _ChangeNameScreenState extends State<ChangeNameScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Change Name"),
+        elevation: 0,
       ),
       body: Padding(
         padding: const EdgeInsets.all(12),

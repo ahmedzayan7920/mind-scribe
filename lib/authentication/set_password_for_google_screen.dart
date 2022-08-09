@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutterfirebase/authentication/background.dart';
+import 'package:flutterfirebase/components/background.dart';
 
 import '../components/awesome_dialog.dart';
 import '../components/loading_dialog.dart';

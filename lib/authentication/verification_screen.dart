@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutterfirebase/components/background.dart';
 import 'package:flutterfirebase/screens/home_screen.dart';
 
 import '../components/awesome_dialog.dart';
@@ -20,38 +21,55 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     return Scaffold(
-      body: SizedBox(
-        width: double.infinity,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisSize: MainAxisSize.max,
+      body: SafeArea(
+        child: Stack(
           children: [
-            const Text("A verification email has been sent to your email."),
-            ElevatedButton.icon(
-              onPressed: () {
-                if (!isEmailVerified) {
-                  sendVerificationEmail();
-                  timer = Timer.periodic(const Duration(seconds: 3), (timer) {
-                    checkEmailVerified();
-                  });
-                }
-              },
-              icon: const Icon(Icons.email),
-              label: const Text("Resend Email"),
-            ),
-            TextButton(
-              onPressed: () {
-                timer!.cancel();
-                Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const LoginScreen(),
+            const Background(),
+            SizedBox(
+              width: double.infinity,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                   Text(
+                    "A verification email has been sent to your email.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: const Color.fromARGB(255, 0, 43, 91),
+                      fontSize: size.width * .07,
+                      fontWeight: FontWeight.bold,
                     ),
-                    (route) => false);
-              },
-              child: const Text("Cancel"),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      if (!isEmailVerified) {
+                        sendVerificationEmail();
+                        timer =
+                            Timer.periodic(const Duration(seconds: 3), (timer) {
+                          checkEmailVerified();
+                        });
+                      }
+                    },
+                    icon: const Icon(Icons.email),
+                    label: const Text("Resend Email"),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      timer!.cancel();
+                      Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const LoginScreen(),
+                          ),
+                          (route) => false);
+                    },
+                    child: const Text("Cancel"),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
