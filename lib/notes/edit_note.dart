@@ -23,6 +23,8 @@ class EditNotes extends StatefulWidget {
   State<EditNotes> createState() => _EditNotesState();
 }
 
+//The machine malfunctions paralysis like an ordinary klingon.
+
 class _EditNotesState extends State<EditNotes> {
   late Reference ref;
 
@@ -44,142 +46,144 @@ class _EditNotesState extends State<EditNotes> {
         padding: const EdgeInsets.all(15),
         child: Form(
           key: formState,
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  withImage
-                      ? const Text(
-                          "Without Image",
-                          style: TextStyle(color: Colors.grey),
-                        )
-                      : const Text(
-                          "Without Image",
-                          style: TextStyle(
-                            color: Color.fromARGB(255, 37, 109, 133),
-                            fontWeight: FontWeight.bold,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    withImage
+                        ? const Text(
+                            "Without Image",
+                            style: TextStyle(color: Colors.grey),
+                          )
+                        : const Text(
+                            "Without Image",
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 37, 109, 133),
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                  Switch(
-                    value: withImage,
-                    activeColor: const Color.fromARGB(255, 37, 109, 133),
-                    onChanged: (newVal) {
-                      setState(() {
-                        withImage = newVal;
-                      });
-                    },
-                  ),
-                  withImage
-                      ? const Text(
-                          "With Image",
-                          style: TextStyle(
-                            color: Color.fromARGB(255, 37, 109, 133),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        )
-                      : const Text(
-                          "With Image",
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                ],
-              ),
-              withImage
-                  ? GestureDetector(
-                      onTap: () {
-                        showBottomSheet(context);
+                    Switch(
+                      value: withImage,
+                      activeColor: const Color.fromARGB(255, 37, 109, 133),
+                      onChanged: (newVal) {
+                        setState(() {
+                          withImage = newVal;
+                        });
                       },
-                      child: file != null
-                          ? CircleAvatar(
-                              backgroundImage: FileImage(file!),
-                              radius: 75,
-                            )
-                          : widget.noteData["imageUrl"] != ""
-                              ? CachedNetworkImage(
-                                  height: 150,
-                                  width: 150,
-                                  imageUrl: widget.noteData["imageUrl"],
-                                  placeholder: (context, url) =>
-                                      const CircularProgressIndicator(),
-                                  errorWidget: (context, url, error) =>
-                                      const Icon(Icons.person, size: 100),
-                                  imageBuilder: (context, imageProvider) =>
-                                      Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(75),
-                                      image: DecorationImage(
-                                        image: imageProvider,
-                                        fit: BoxFit.cover,
+                    ),
+                    withImage
+                        ? const Text(
+                            "With Image",
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 37, 109, 133),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                        : const Text(
+                            "With Image",
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                  ],
+                ),
+                withImage
+                    ? GestureDetector(
+                        onTap: () {
+                          showBottomSheet(context);
+                        },
+                        child: file != null
+                            ? CircleAvatar(
+                                backgroundImage: FileImage(file!),
+                                radius: 75,
+                              )
+                            : widget.noteData["imageUrl"] != ""
+                                ? CachedNetworkImage(
+                                    height: 150,
+                                    width: 150,
+                                    imageUrl: widget.noteData["imageUrl"],
+                                    placeholder: (context, url) =>
+                                        const CircularProgressIndicator(),
+                                    errorWidget: (context, url, error) =>
+                                        const Icon(Icons.person, size: 100),
+                                    imageBuilder: (context, imageProvider) =>
+                                        Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(75),
+                                        image: DecorationImage(
+                                          image: imageProvider,
+                                          fit: BoxFit.cover,
+                                        ),
                                       ),
                                     ),
+                                  )
+                                : const Icon(
+                                    Icons.add_a_photo_outlined,
+                                    color: Color.fromARGB(255, 37, 109, 133),
+                                    size: 150,
                                   ),
-                                )
-                              : const Icon(
-                                  Icons.add_a_photo_outlined,
-                                  color: Color.fromARGB(255, 37, 109, 133),
-                                  size: 150,
-                                ),
-                    )
-                  : const SizedBox.shrink(),
-              TextFormField(
-                initialValue: title,
-                validator: (val) {
-                  if (val!.length > 30) {
-                    return "Title can't to be larger than 30 letter";
-                  }
-                  if (val.length < 2) {
-                    return "Title can't to be less than 2 letter";
-                  }
-                  return null;
-                },
-                onSaved: (val) {
-                  title = val!;
-                },
-                maxLength: 30,
-                decoration: const InputDecoration(
-                  prefixIcon: Icon(
-                    Icons.title,
-                    color: Color.fromARGB(255, 37, 109, 133),
-                  ),
-                  label: Text("Title Note"),
-                ),
-              ),
-              TextFormField(
-                initialValue: note,
-                validator: (val) {
-                  if (val!.length > 255) {
-                    return "Notes can't to be larger than 255 letter";
-                  }
-                  if (val.length < 10) {
-                    return "Notes can't to be less than 10 letter";
-                  }
-                  return null;
-                },
-                onSaved: (val) {
-                  note = val!;
-                },
-                minLines: 1,
-                maxLines: 3,
-                maxLength: 200,
-                decoration: const InputDecoration(
-                  labelText: "Note",
-                  prefixIcon: Icon(
-                    Icons.note_alt_outlined,
-                    color: Color.fromARGB(255, 37, 109, 133),
+                      )
+                    : const SizedBox.shrink(),
+                TextFormField(
+                  initialValue: title,
+                  validator: (val) {
+                    if (val!.length > 30) {
+                      return "Title can't to be larger than 30 letter";
+                    }
+                    if (val.length < 2) {
+                      return "Title can't to be less than 2 letter";
+                    }
+                    return null;
+                  },
+                  onSaved: (val) {
+                    title = val!;
+                  },
+                  maxLength: 30,
+                  decoration: const InputDecoration(
+                    prefixIcon: Icon(
+                      Icons.title,
+                      color: Color.fromARGB(255, 37, 109, 133),
+                    ),
+                    label: Text("Title Note"),
                   ),
                 ),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  bool oldImage =
-                      widget.noteData["imageUrl"] == "" ? false : true;
-                  await editNotes(context, oldImage);
-                },
-                child: const Text(
-                  "Edit Note",
+                TextFormField(
+                  initialValue: note,
+                  validator: (val) {
+                    if (val!.length > 255) {
+                      return "Notes can't to be larger than 255 letter";
+                    }
+                    if (val.length < 10) {
+                      return "Notes can't to be less than 10 letter";
+                    }
+                    return null;
+                  },
+                  onSaved: (val) {
+                    note = val!;
+                  },
+                  minLines: 1,
+                  maxLines: 3,
+                  maxLength: 200,
+                  decoration: const InputDecoration(
+                    labelText: "Note",
+                    prefixIcon: Icon(
+                      Icons.note_alt_outlined,
+                      color: Color.fromARGB(255, 37, 109, 133),
+                    ),
+                  ),
                 ),
-              ),
-            ],
+                ElevatedButton(
+                  onPressed: () async {
+                    bool oldImage =
+                        widget.noteData["imageUrl"] == "" ? false : true;
+                    await editNotes(context, oldImage);
+                  },
+                  child: const Text(
+                    "Edit Note",
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

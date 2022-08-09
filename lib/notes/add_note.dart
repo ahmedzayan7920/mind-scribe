@@ -39,118 +39,120 @@ class _AddNotesState extends State<AddNotes> {
         padding: const EdgeInsets.all(15),
         child: Form(
           key: formState,
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  withImage
-                      ? const Text(
-                          "Without Image",
-                          style: TextStyle(color: Colors.grey),
-                        )
-                      : const Text(
-                          "Without Image",
-                          style: TextStyle(
-                            color: Color.fromARGB(255, 37, 109, 133),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                  Switch(
-                    value: withImage,
-                    activeColor: const Color.fromARGB(255, 37, 109, 133),
-                    onChanged: (newVal) {
-                      setState(() {
-                        withImage = newVal;
-                      });
-                    },
-                  ),
-                  withImage
-                      ? const Text(
-                          "With Image",
-                          style: TextStyle(
-                            color: Color.fromARGB(255, 37, 109, 133),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        )
-                      : const Text(
-                          "With Image",
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                ],
-              ),
-              withImage
-                  ? GestureDetector(
-                      onTap: () {
-                        showBottomSheet(context);
-                      },
-                      child: file == null
-                          ? const Icon(
-                              Icons.add_a_photo_outlined,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    withImage
+                        ? const Text(
+                            "Without Image",
+                            style: TextStyle(color: Colors.grey),
+                          )
+                        : const Text(
+                            "Without Image",
+                            style: TextStyle(
                               color: Color.fromARGB(255, 37, 109, 133),
-                              size: 150,
-                            )
-                          : CircleAvatar(
-                              backgroundImage: FileImage(file!),
-                              radius: 75,
+                              fontWeight: FontWeight.bold,
                             ),
-                    )
-                  : const SizedBox.shrink(),
-              TextFormField(
-                validator: (val) {
-                  if (val!.length > 30) {
-                    return "Title can't to be larger than 30 letter";
-                  }
-                  if (val.length < 2) {
-                    return "Title can't to be less than 2 letter";
-                  }
-                  return null;
-                },
-                onSaved: (val) {
-                  title = val!;
-                },
-                maxLength: 30,
-                decoration: const InputDecoration(
-                  labelText: "Title Note",
-                  prefixIcon: Icon(
-                    Icons.title,
-                    color: Color.fromARGB(255, 37, 109, 133),
+                          ),
+                    Switch(
+                      value: withImage,
+                      activeColor: const Color.fromARGB(255, 37, 109, 133),
+                      onChanged: (newVal) {
+                        setState(() {
+                          withImage = newVal;
+                        });
+                      },
+                    ),
+                    withImage
+                        ? const Text(
+                            "With Image",
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 37, 109, 133),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                        : const Text(
+                            "With Image",
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                  ],
+                ),
+                withImage
+                    ? GestureDetector(
+                        onTap: () {
+                          showBottomSheet(context);
+                        },
+                        child: file == null
+                            ? const Icon(
+                                Icons.add_a_photo_outlined,
+                                color: Color.fromARGB(255, 37, 109, 133),
+                                size: 150,
+                              )
+                            : CircleAvatar(
+                                backgroundImage: FileImage(file!),
+                                radius: 75,
+                              ),
+                      )
+                    : const SizedBox.shrink(),
+                TextFormField(
+                  validator: (val) {
+                    if (val!.length > 30) {
+                      return "Title can't to be larger than 30 letter";
+                    }
+                    if (val.length < 2) {
+                      return "Title can't to be less than 2 letter";
+                    }
+                    return null;
+                  },
+                  onSaved: (val) {
+                    title = val!;
+                  },
+                  maxLength: 30,
+                  decoration: const InputDecoration(
+                    labelText: "Title Note",
+                    prefixIcon: Icon(
+                      Icons.title,
+                      color: Color.fromARGB(255, 37, 109, 133),
+                    ),
                   ),
                 ),
-              ),
-              TextFormField(
-                validator: (val) {
-                  if (val!.length > 255) {
-                    return "Notes can't to be larger than 255 letter";
-                  }
-                  if (val.length < 10) {
-                    return "Notes can't to be less than 10 letter";
-                  }
-                  return null;
-                },
-                onSaved: (val) {
-                  note = val!;
-                },
-                minLines: 1,
-                maxLines: 3,
-                maxLength: 200,
-                decoration: const InputDecoration(
-                  labelText: "Note",
-                  prefixIcon: Icon(
-                    Icons.note_alt_outlined,
-                    color: Color.fromARGB(255, 37, 109, 133),
+                TextFormField(
+                  validator: (val) {
+                    if (val!.length > 255) {
+                      return "Notes can't to be larger than 255 letter";
+                    }
+                    if (val.length < 10) {
+                      return "Notes can't to be less than 10 letter";
+                    }
+                    return null;
+                  },
+                  onSaved: (val) {
+                    note = val!;
+                  },
+                  minLines: 1,
+                  maxLines: 3,
+                  maxLength: 200,
+                  decoration: const InputDecoration(
+                    labelText: "Note",
+                    prefixIcon: Icon(
+                      Icons.note_alt_outlined,
+                      color: Color.fromARGB(255, 37, 109, 133),
+                    ),
                   ),
                 ),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  await addNotes(context);
-                },
-                child: const Text(
-                  "Add Note",
+                ElevatedButton(
+                  onPressed: () async {
+                    await addNotes(context);
+                  },
+                  child: const Text(
+                    "Add Note",
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
