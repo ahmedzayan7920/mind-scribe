@@ -211,7 +211,7 @@ class _EditNotesState extends State<EditNotes> {
           if (withImage) {
             if (file == null && widget.noteData["imageUrl"] == "") {
               Navigator.pop(context);
-              return showAwesomeDialog(context, "please choose Image");
+              showAwesomeDialog(context, "please choose Image");
             } else if (file == null && widget.noteData["imageUrl"] != ""){
               notesRef.doc(widget.docId).update({
                 "title": title,

@@ -169,7 +169,8 @@ class _AddNotesState extends State<AddNotes> {
         if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
           if (withImage) {
             if (file == null) {
-              return showAwesomeDialog(context, "please choose Image");
+              Navigator.pop(context);
+              showAwesomeDialog(context, "please choose Image");
             } else {
               await ref.putFile(file!).then((p0) {
                 ref.getDownloadURL().then((value) {
@@ -211,7 +212,6 @@ class _AddNotesState extends State<AddNotes> {
         }
       } on SocketException {
         Navigator.pop(context);
-
         showAwesomeDialog(context, "No Internet Connection");
       }
     }
